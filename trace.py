@@ -1,4 +1,4 @@
-from sys import settrace, argv
+from sys import settrace, argv, exit
 from inspect import getframeinfo
 
 def format_frame(frame):
@@ -39,8 +39,12 @@ class TracerExample(Tracer):
         print "-" * self._depth,  format_frame(frame), "return: ", arg
 
 def main():
+    if len(argv) != 2:
+        print "usage: python trace.py some_script.py"
+        exit(1)
+    
     with TracerExample():
         execfile(argv[1])
-
+        
 if __name__ == '__main__':
     main()
