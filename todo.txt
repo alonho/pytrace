@@ -1,0 +1,29 @@
+Tables:
+  Calls:
+    time, module, func
+  Args:    
+    time, key, class, value
+
+Types:
+  Type:
+    Class
+    Value
+  Function:
+    Module String
+    Name
+    Args: [Type]
+
+Functions:
+  Entry
+  Exit
+
+Reader:
+  Pager:
+    PageLimit
+    MemLimit
+  Filters:
+    Time
+    Fold
+    Regexp
+    Grep
+
