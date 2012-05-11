@@ -2,32 +2,52 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from .tables import Base, Func, Module, Arg, ArgValue, ArgName, Type, Trace
 
-engine = create_engine("sqlite:///:memory:", echo=True)
-Base.metadata.create_all(engine)
-Session = sessionmaker(bind=engine)
+class DB(object):
 
-def DB(object):
-
-    def __init__(self):
-        pass
-
-    def handle_call(self, type_, time, module, func, depth, args):
-        session = Session()
-        func = Func.get_or_create(session, module=Module.get_or_create(session, value=module))
-        args = [Arg.get_or_create(session, type=Type.get_or_create(session, value=type(value)),
-                                  name=ArgName.get_or_create(session, value=key),
-                                  value=ArgValue.get_or_create(session, value=value))
-                for key, value in args.iteritems()]
-        session.add(Trace(type=type_,
-                          time=time,
-                          depth=depth,
-                          func=func,
-                          args=args))
-        session.flush()
+    ECHO = False
+    COMMIT_INTERVAL = 100
+    
+    def __init__(self, uri):
+        engine = create_engine(uri, echo=self.ECHO)
+        Base.metadata.create_all(engine)
+        self.session = sessionmaker(bind=engine)()
+        self._interval = 0
         
-    def handle_return(self, *a, **k):
-        pass
+    @classmethod
+    def create_inmemory(cls):
+        return cls(uri="sqlite:///:memory:")
 
-    def handle_exception(self, *a, **k):
-        pass
+    def _commit_if_needed(self):
+        self._interval += 1
+        if self._interval > self.COMMIT_INTERVAL:
+            self._interval = 0
+            #self.session.commit()
 
+    def flush(self):
+        self.session.commit()
+        self._interval = 0
+            
+    def handle_trace(self, trace_type, time, module, func_name, from_class, depth, args):
+        func = Func.get_or_create(self.session,
+                                  module=Module.get_or_create(self.session, value=module),
+                                  type=Type.get_or_create(self.session, value=from_class),
+                                  name=func_name)
+        args = [Arg.get_or_create(self.session, type=Type.get_or_create(self.session, value=str(type(value))),
+                                  name=ArgName.get_or_create(self.session, value=key),
+                                  value=ArgValue.get_or_create(self.session, value=str(value)))
+                for key, value in args.iteritems()]
+        self.session.add(Trace(type=trace_type,
+                               time=time,
+                               depth=depth,
+                               func=func,
+                               args=args))
+        self._commit_if_needed()
+
+    def handle_call(self, *a, **k):
+        self.handle_trace("call", *a, **k)
+
+    def handle_return(self, value, *a, **k):
+        self.handle_trace("return", args=dict(return_value=value), *a, **k)
+
+    def handle_exception(self, exception, *a, **k):
+        self.handle_trace("exception", args=dict(exception=exception), *a, **k)
