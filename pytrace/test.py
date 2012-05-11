@@ -1,12 +1,19 @@
+from pytrace import Tracer
 
-def g(x):
-    return x * 2
-
-def f():
-    g(10)
-
+def fib(n):
+    if n in (1,2):
+        return 1
+    return fib(n - 1) + fib(n - 2)
+    
 if __name__ == '__main__':
-    import pytrace.tracer
-    pytrace.tracer.start()
-    f()
-    pytrace.tracer.stop()
+    n = 15
+    with Tracer():
+        import time
+        s = time.time()
+        fib(n)
+        print "traced: ", time.time() - s
+    s = time.time()
+    fib(n)
+    print "untraced: ", time.time() - s
+    
+        

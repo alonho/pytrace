@@ -53,27 +53,3 @@ class Tracer(BaseTracer):
     def __exit__(self, *e):
         super(Tracer, self).__exit__(*e)
         self._db.flush()
-        
-def test():
-    def h(*args):
-        return sum(args)
-    def g(arg):
-        return arg * h(2)
-    def f(a=10):
-        d = 10
-        g(a*2)
-
-def test2():
-    def fib(n):
-        if n in (1,2):
-            return 1
-        return fib(n - 1) + fib(n - 2)
-    fib(12)
-    
-if __name__ == '__main__':
-    with Tracer():
-        import time
-        s = time.time()
-        test2()
-        print time.time() - s
-
