@@ -6,7 +6,7 @@ def f():
     g(10)
 
 if __name__ == '__main__':
-    import pytrace.tracer
-    pytrace.tracer.start()
+    import cpytrace.tracer as tracer
+    tracer.start()
     f()
-    pytrace.tracer.stop()
+    tracer.stop()

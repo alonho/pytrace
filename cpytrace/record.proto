@@ -1,0 +1,23 @@
+
+message Argument {
+  required string name = 1;
+  required string type = 2;
+  required string value = 3;
+}
+
+message Record {
+  enum RecordType {
+    CALL = 0;
+    RETURN = 1;
+    EXCEPTION = 2;
+    LOG = 3;
+  };
+  required RecordType type = 1;
+  required double time = 2;
+  required int64 tid = 3;
+  required string module = 4;
+  optional string class = 5;
+  required string function = 6;
+  required int32 depth = 7;
+  repeated Argument arguments = 8;
+}
