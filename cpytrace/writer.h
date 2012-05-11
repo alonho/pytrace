@@ -2,10 +2,9 @@
 
 #include "Python.h"
 #include "record.h"
-#include "bla.h"
 
-#define MAX(x, y) (x) > (y) ? (x) : (y)
-#define MIN(x, y) (x) < (y) ? (x) : (y)
+#define MAX(x, y) ((x) > (y) ? (x) : (y))
+#define MIN(x, y) ((x) < (y) ? (x) : (y))
 #define PYPRINT(obj) PyObject_Print(obj, stdout, Py_PRINT_RAW);
 
 #define MAX_ARGS 128
@@ -15,7 +14,6 @@ static Argument *arguments; // pre-allocate maximum number of arguments
 
 inline void init_writer() {
   int i;
-  bla();
   rec = malloc(sizeof(Record)); // TODO: check malloc retval
   arguments = malloc(sizeof(Argument) * MAX_ARGS); // TODO: check malloc retval
   rec->arguments = arguments;
@@ -24,7 +22,7 @@ inline void init_writer() {
   }
 }
 
-const char *pyobj_to_cstr(PyObject *obj) {
+inline const char *pyobj_to_cstr(PyObject *obj) {
   PyObject *string = PyObject_Repr(obj);
   if (NULL == string) {
     return "REPR FAILED";
@@ -32,14 +30,14 @@ const char *pyobj_to_cstr(PyObject *obj) {
   return PyString_AsString(string);
 }
 
-static double floattime()
+inline static double floattime()
 {
   struct timeval t;
   gettimeofday(&t, NULL);
   return (double) t.tv_sec + t.tv_usec * 0.000001;
 }
 
-void handle_trace(PyFrameObject *frame, Record__RecordType record_type, int n_arguments) 
+inline void handle_trace(PyFrameObject *frame, Record__RecordType record_type, int n_arguments) 
 {
   rec->type = record_type;
   rec->n_arguments = n_arguments;
@@ -50,7 +48,7 @@ void handle_trace(PyFrameObject *frame, Record__RecordType record_type, int n_ar
   rec->depth = 0;
 }
 
-void handle_call(PyFrameObject *frame) {  
+inline void handle_call(PyFrameObject *frame) {  
   PyObject *name, *value;
   int i;
   for (i = 0; i < MIN(frame->f_code->co_argcount, MAX_ARGS); i++) {
@@ -67,14 +65,14 @@ void handle_call(PyFrameObject *frame) {
   handle_trace(frame, RECORD__RECORD_TYPE__CALL, i);
 }
 
-void handle_return(PyFrameObject *frame, PyObject *value) {
+inline void handle_return(PyFrameObject *frame, PyObject *value) {
   arguments[0].name = "return_value";
   arguments[0].type = pyobj_to_cstr(value->ob_type);
   arguments[0].value = pyobj_to_cstr(value);
   handle_trace(frame, RECORD__RECORD_TYPE__RETURN, 1);
 }
     
-void handle_exception(PyFrameObject *frame, PyObject *exc_info) {
+inline void handle_exception(PyFrameObject *frame, PyObject *exc_info) {
   arguments[0].name = "exception";
   arguments[0].type = pyobj_to_cstr(PyTuple_GET_ITEM(exc_info, 1));
   arguments[0].value = pyobj_to_cstr(PyTuple_GET_ITEM(exc_info, 2));

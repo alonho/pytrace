@@ -5,4 +5,5 @@ setup(name='cpytrace',
       packages=['cpytrace'],
       ext_modules=[Extension("cpytrace.tracer",
                              sources=["cpytrace/tracer.c",
-                                      "cpytrace/record.c"])])
+                                      "cpytrace/record.c"],
+                             libraries=["protobuf-c"])])
