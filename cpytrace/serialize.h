@@ -2,6 +2,7 @@
 
 #include "Python.h"
 #include "record.h"
+#include "write.h"
 
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
@@ -12,7 +13,7 @@
 static Record *rec; // pre-allocate a single record to be re-used
 static Argument *arguments; // pre-allocate maximum number of arguments
 
-inline void init_writer() {
+inline void init_serialize() {
   int i;
   rec = malloc(sizeof(Record)); // TODO: check malloc retval
   arguments = malloc(sizeof(Argument) * MAX_ARGS); // TODO: check malloc retval

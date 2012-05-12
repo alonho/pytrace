@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "Python.h"
 #include "frameobject.h"
-#include "writer.h"
+#include "serialize.h"
 
 #define MODULE_DOC PyDoc_STR("C extension for fast function tracing.")
 
@@ -46,6 +46,6 @@ methods[] = {
 void
 inittracer(void)
 {
-  init_writer();
+  init_serialize();
   Py_InitModule3("cpytrace.tracer", methods, MODULE_DOC);
 }
