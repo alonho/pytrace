@@ -9,5 +9,5 @@ if __name__ == '__main__':
     tracer.start()
     fib(30)
     tracer.stop()
-    # 1.679 seconds run time with traces
+    # 2.5 seconds run time with traces (1 second spent by record_pack)
     # 0.387 without

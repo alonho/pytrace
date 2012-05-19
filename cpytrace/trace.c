@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include "Python.h"
 #include "frameobject.h"
-#include "serialize.h"
+#include "serial.h"
 
 #define MODULE_DOC PyDoc_STR("C extension for fast function tracing.")
 

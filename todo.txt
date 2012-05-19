@@ -1,3 +1,5 @@
+http://code.google.com/p/protobuf-c/wiki/Examples
+
 Tables:
   Calls:
     time, module, func
