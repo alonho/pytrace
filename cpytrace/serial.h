@@ -2,8 +2,8 @@
 #define SERIAL_H
 
 #include <pthread.h>
-
 #include "Python.h"
+#include "frameobject.h"
 #include "record.h"
 #include "write.h"
 
@@ -11,22 +11,17 @@
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 #define PYPRINT(obj) PyObject_Print(obj, stdout, Py_PRINT_RAW);
 
-// make sure the max record size isn't bigger than the writer's buffer
-#define MAX_ARGS 128
-#define MAX_STR_SIZE 1024
-#define MAX_RECORD_SIZE MAX_ARGS * MAX_STR_SIZE * 2 // double just to be safe
-
 static Record *record; // pre-allocate a single record to be re-used
 static Argument **arguments; // pre-allocate maximum number of arguments
 static char* record_buf;
 
 inline void init_serialize() {
-  int i;
   record_buf = malloc(MAX_RECORD_SIZE);
   record = malloc(sizeof(Record)); // TODO: check malloc retval
   record__init(record);
   arguments = malloc(sizeof(Argument*) * MAX_ARGS); // TODO: check malloc retval
   record->arguments = arguments;
+  int i;
   for (i = 0; i < MAX_ARGS; i++) {
     arguments[i] = malloc(sizeof(Argument));
     argument__init(arguments[i]);
@@ -55,8 +50,8 @@ inline void handle_trace(PyFrameObject *frame, Record__RecordType record_type, i
   record->n_arguments = n_arguments;
   record->time = floattime();
   record->tid = (unsigned int) pthread_self();
-  record->function = frame->f_code->co_name;
-  record->module = frame->f_code->co_filename;
+  record->function = PyString_AsString(frame->f_code->co_name);
+  record->module = PyString_AsString(frame->f_code->co_filename);
   record->depth = 0;
   record__pack(record, record_buf);
   write_record(record_buf, record__get_packed_size(record));

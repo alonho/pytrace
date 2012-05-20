@@ -3,3 +3,5 @@ build
 db.sqlite
 \#*\#
 .\#*
+*.gch
+*.dSYM

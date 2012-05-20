@@ -2,8 +2,7 @@
 #define WRITE_H
 
 #include "rb/rb.h"
-
-#define RB_SIZE 2^20 // MB
+#include "defs.h"
 
 static long desc;
 
@@ -12,7 +11,6 @@ inline void init_writer() {
 }
 
 inline void write_record(char* buf, unsigned long size) {
-  printf("bla");
   rb_write(desc, &size, sizeof(long));
   rb_write(desc, buf, size);
 }
