@@ -35,7 +35,7 @@ int main() {
       rec = record__unpack(NULL, size, buf);
       printf("%f %s %s %d: ", rec->time, rec->module, rec->function, rec->type);
       for (i = 0; i < rec->n_arguments; i++) {
-	printf("%s = %s", rec->arguments[i]->name, rec->arguments[i]->value);
+	printf("%s = %s, ", rec->arguments[i]->name, rec->arguments[i]->value);
       }
       printf("\n");
     }
