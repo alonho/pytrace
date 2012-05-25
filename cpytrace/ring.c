@@ -33,7 +33,7 @@ overflow didn't occur if:
 #include <string.h>
 #include "ring.h"
 
-void ring_init(Ring *ring, unsigned char *buf, unsigned int size) {
+static void ring_init(Ring *ring, unsigned char *buf, unsigned int size) {
   ring->buf = ring->read = ring->write = buf;
   ring->size = size;
   ring->generation = 0;
@@ -51,80 +51,120 @@ Ring *ring_malloc(unsigned int size) {
   return ring;
 }
 
-void ring_read(Ring *ring, unsigned char *buf, unsigned char *ring_buf, unsigned int size) {
-  assert(size < ring->size);
-  int overflow = ring_buf + size - ring->buf + size;
+void ring_free(Ring *ring) {
+  free(ring->buf);
+  free(ring);
+}
+
+static unsigned char* ring_raw_read(Ring *ring, unsigned char *buf, unsigned char *ring_buf, unsigned int size) {
+  assert(size <= ring->size);
+  int overflow = ring_buf + size - (ring->buf + ring->size);
   if (overflow < 0) {
-    memcpy(buf, ring_buf, size);
+    if (NULL != buf) {
+      memcpy(buf, ring_buf, size);
+    }
+    return ring_buf + size;
   } else {
-    memcpy(buf, ring_buf, size - overflow);
-    memcpy(buf + size - overflow, ring->buf, overflow);
+    if (NULL != buf) {
+      memcpy(buf, ring_buf, size - overflow);
+      memcpy(buf + size - overflow, ring->buf, overflow);
+    }
+    return ring->buf + overflow;
   }
 }
 
-void ring_clear(Ring *ring, unsigned int size) {
-  assert(size < ring->size);
-  if (ring->write < ring->read) {
-    if (ring->read - ring->write >= size) {
-      return;
-    }
-  } else {
-    if (ring->buf + ring->size - ring->write + ring->read - ring->buf >= size) {
-      return;
-    }
-  }
-}
-
-void ring_write(Ring *ring, unsigned char *ring_buf, unsigned char *buf, unsigned int size) {
-  assert(size < ring->size);
-  int overflow = ring_buf + size - ring->buf + size;
-  if (overflow < 0) {
+static unsigned char* ring_raw_write(Ring *ring, unsigned char *ring_buf, unsigned char *buf, unsigned int size) {
+  assert(size <= ring->size);
+  int overflow = ring_buf + size - (ring->buf + ring->size);
+  if (overflow <= 0) {
     memcpy(ring_buf, buf, size);
+    return ring_buf + size;
   } else {
     memcpy(ring_buf, buf, size - overflow);
     memcpy(ring->buf, buf + size - overflow, overflow);
+    return ring->buf + overflow;
   }
 }
 
-RingReader *reader_init(Ring *ring) {
-  RingReader *reader = malloc(sizeof(RingReader));
-  reader_reset(reader);
-  return reader;
+static void ring_clear(Ring *ring, unsigned int size) {
+  long size_left = size;
+  unsigned int available, record_size;
+  unsigned char *read = ring->read;
+  unsigned char *initial_read = ring->read;
+  assert(size < ring->size);
+  if (ring->write < ring->read) {
+    available = ring->read - ring->write;
+  } else {
+    available = ring->buf + ring->size - ring->write + ring->read - ring->buf;
+  }
+  available--; // the reader should never meet the writer
+  size_left -= available;
+  while (size_left > 0) {
+    size_left -= sizeof(int);
+    read = ring_raw_read(ring, (unsigned char*) &record_size, read, sizeof(int));
+    size_left -= record_size;
+    read = ring_raw_read(ring, NULL, read, record_size);
+  }
+  if (read < initial_read) {
+    ring->generation++;
+  }
+  ring->read = read;
 }
 
-void reader_reset(RingReader *reader) {
+void ring_write(Ring *ring, unsigned char *buf, unsigned int size) {
+  unsigned char* write;
+  ring_clear(ring, sizeof(int) + size);
+  write = ring_raw_write(ring, ring->write, (unsigned char*) &size, sizeof(int));
+  ring->write = ring_raw_write(ring, write, buf, size);
+}
+
+static void reader_reset(RingReader *reader) {
   reader->generation = reader->ring->generation;
   reader->last = reader->ring->read;
 }
 
-int reader_overflow(RingReader *reader) {
-  return !((reader->last > reader->ring->read && reader->generation == reader->ring->generation) || 
-	   (reader->last < reader->ring->read && reader->generation == reader->ring->generation - 1));
+RingReader *reader_malloc(Ring *ring) {
+  RingReader *reader = malloc(sizeof(RingReader));
+  reader->ring = ring;
+  reader_reset(reader);
+  return reader;
+}
+
+void reader_free(RingReader *reader) {
+  free(reader);
+}
+
+static int reader_overflow(RingReader *reader) {
+  return !((reader->last >= reader->ring->read && reader->generation == reader->ring->generation) || 
+	   (reader->last < reader->ring->read && reader->generation == reader->ring->generation + 1));
 }
 
 #define READ_OVERFLOW -1
-#define READ_EMPTY 0
-int reader_read(RingReader *reader, char *buf) {
+int reader_read(RingReader *reader, unsigned char *buf) {
+  unsigned char *read;
   if (reader_overflow(reader)) {
     goto overflow;
   }
   if (reader->last == reader->ring->write) {
-    return READ_EMPTY;
+    return 0;
   }
 
   // read the size of the record
-  ring_read(reader->ring, buf, reader->last, sizeof(int));
+  read = ring_raw_read(reader->ring, buf, reader->last, sizeof(int));
   if (reader_overflow(reader)) {
     goto overflow;
   }
   unsigned int size = *((int*) buf);
 
   // read the record
-  ring_read(reader->ring, buf, reader->last + sizeof(int), size);
+  read = ring_raw_read(reader->ring, buf, read, size);
   if (reader_overflow(reader)) {
     goto overflow;
   }
-  reader->last += sizeof(int) + size;
+  if (read < reader->last) {
+    reader->generation++;
+  }  
+  reader->last = read;
   return size;
 
  overflow:
