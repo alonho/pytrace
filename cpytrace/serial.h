@@ -5,7 +5,7 @@
 #include "Python.h"
 #include "frameobject.h"
 
-void init_serialize();
+int init_serialize(void);
 void handle_trace(PyFrameObject *frame, Record__RecordType record_type, int n_arguments);
 void handle_call(PyFrameObject *frame);
 void handle_return(PyFrameObject *frame, PyObject *value);

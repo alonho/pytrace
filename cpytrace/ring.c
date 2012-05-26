@@ -1,14 +1,14 @@
 /*
-Requirements:
+requirements:
 1. A cylcic buffer over shared memory.
-2. The writer never blocks - if the reader is down or slow, traces are lost.
+2. The writer never blocks - if the reader is down or slow, oldest data should be lost.
 3. The reader should be able to catch up when:
   a. It starts after the writer.
   b. The writer is faster and bypasses the reader.
 
 shared memory will contain:
 1. a circular buffer of trace records delimited by their length.
-2. two pointers for the newest record and last valid record.
+2. two pointers for the newest record (write ptr) and last valid record (read ptr).
 3. a generation id, for identifying wrap arounds.
 
 write procedure:
@@ -17,7 +17,7 @@ write procedure:
   3. advance the write pointer, upon wrap around advance generation id.
 
 read procedure:
-  1. the reader saves locally (not in the shmem) a pointer to the 'current' record and the last generation id. 
+  1. the reader saves locally (not in the shmem) a pointer to the 'current' record and the last generation id (using the RingReader struct). 
   2. if it's the first read or overflow occured, current = read pointer (+10?)
   3. if current == write pointer, nothing to read, else
   4. read a record, if read pointer > current, drop it. else,
@@ -41,7 +41,13 @@ static void ring_init(Ring *ring, unsigned char *buf, unsigned int size) {
 
 Ring *ring_from_memory(unsigned char *buf, unsigned int size) {
   Ring *ring = (Ring *) buf;
+  return ring;
+}
+
+Ring *ring_init_from_memory(unsigned char *buf, unsigned int size) {
+  Ring *ring = ring_from_memory(buf, size);
   ring_init(ring, buf + sizeof(Ring), size - sizeof(Ring));
+  return ring;
 }
 
 Ring *ring_malloc(unsigned int size) {
@@ -86,7 +92,7 @@ static unsigned char* ring_raw_write(Ring *ring, unsigned char *ring_buf, unsign
   }
 }
 
-static void ring_clear(Ring *ring, unsigned int size) {
+static inline void ring_clear(Ring *ring, unsigned int size) {
   long size_left = size;
   unsigned int available, record_size;
   unsigned char *read = ring->read;
@@ -135,8 +141,11 @@ void reader_free(RingReader *reader) {
 }
 
 static int reader_overflow(RingReader *reader) {
-  return !((reader->last >= reader->ring->read && reader->generation == reader->ring->generation) || 
-	   (reader->last < reader->ring->read && reader->generation == reader->ring->generation + 1));
+  if (reader->last >= reader->ring->read) {
+    return reader->generation != reader->ring->generation;
+  } else {
+    return reader->generation != reader->ring->generation + 1;
+  }
 }
 
 #define READ_OVERFLOW -1
