@@ -25,18 +25,16 @@ int main() {
       printf("overflow\n");
       break;
     case 0:
-      printf("no data");
+      printf("no data\n");
       sleep(1);
       break;
     default:
-      i++;
-      
       rec = record__unpack(NULL, size, buf);
-      /*printf("%f %s %s %d: ", rec->time, rec->module, rec->function, rec->type);
+      printf("%f %s %s %d: ", rec->time, rec->module, rec->function, rec->type);
       for (i = 0; i < rec->n_arguments; i++) {
 	printf("%s = %s, ", rec->arguments[i]->name, rec->arguments[i]->value);
-	}*/
-      printf("%d\n", i);
+      }
+      printf("\n");
     }
   }
 }
