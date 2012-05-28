@@ -23,7 +23,7 @@ Ring *shared_ring_init(int read_only) {
     return NULL;
   }
   
-  first_attach =  0;
+  first_attach = shmds.shm_nattch == 0;
   mem = shmat(shmid, 
 	      RING_ADDRESS, 
 	      SHM_RND | ((read_only && !first_attach) ? SHM_RDONLY : 0));

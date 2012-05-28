@@ -34,8 +34,8 @@ void test_ring() {
   RingReader *reader = reader_malloc(ring);
 
   size = reader_read(reader, buf);
-  assert(0 == size);
-
+  assert(0 == size);  
+  
   printf("one write and one read\n");
   ring_write(ring, "11", 2);
   size = reader_read(reader, buf);

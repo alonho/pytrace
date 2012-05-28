@@ -126,6 +126,11 @@ void ring_write(Ring *ring, unsigned char *buf, unsigned int size) {
 static void reader_reset(RingReader *reader) {
   reader->generation = reader->ring->generation;
   reader->last = reader->ring->read;
+  usleep(1); // this should be solved using a semaphore or better yet, a non wrap around index
+  if (reader->ring->read < reader->last) {
+    reader->generation = reader->ring->generation;
+    reader->last = reader->ring->read;
+  }
 }
 
 RingReader *reader_malloc(Ring *ring) {
