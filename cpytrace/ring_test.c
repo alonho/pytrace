@@ -15,13 +15,13 @@ void test_raw() {
   }
 
   // raw write entire buffer and verify
-  ring_raw_write(ring, ring->buf, reference, BUF_SIZE);
-  ring_raw_read(ring, buf, ring->buf, BUF_SIZE);
+  ring_raw_write(ring, 0, reference, BUF_SIZE);
+  ring_raw_read(ring, buf, 0, BUF_SIZE);
   assert(0 == memcmp(reference, buf, BUF_SIZE));
 
   // raw write entire buffer from middle and verify
-  ring_raw_write(ring, ring->buf + BUF_SIZE / 2, reference, BUF_SIZE);
-  ring_raw_read(ring, buf, ring->buf + BUF_SIZE / 2, BUF_SIZE);
+  ring_raw_write(ring, BUF_SIZE / 2, reference, BUF_SIZE);
+  ring_raw_read(ring, buf, BUF_SIZE / 2, BUF_SIZE);
   assert(0 == memcmp(reference, buf, BUF_SIZE));
   
   ring_free(ring);

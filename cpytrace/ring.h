@@ -3,8 +3,8 @@
 
 typedef struct {
   unsigned int size;
-  unsigned long generation;
-  unsigned char *read, *write, *buf;
+  unsigned long read_index, write_index;
+  unsigned char *buf;
 } Ring;
 
 Ring *ring_from_memory(unsigned char *buf, unsigned int size);
@@ -16,8 +16,7 @@ void ring_write(Ring *ring, unsigned char *buf, unsigned int size);
 
 typedef struct {
   Ring *ring;
-  unsigned long generation;
-  unsigned char *last;
+  unsigned long read_index;
 } RingReader;
 
 RingReader *reader_malloc(Ring *ring);
