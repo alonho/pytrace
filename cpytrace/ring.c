@@ -96,7 +96,6 @@ static inline void ring_clear(Ring *ring, unsigned int size) {
   long size_left = size;
   unsigned int available, record_size;
   unsigned char *read = ring->read;
-  unsigned char *initial_read = ring->read;
   assert(size < ring->size);
   if (ring->write < ring->read) {
     available = ring->read - ring->write;
@@ -111,7 +110,7 @@ static inline void ring_clear(Ring *ring, unsigned int size) {
     size_left -= record_size;
     read = ring_raw_read(ring, NULL, read, record_size);
   }
-  if (read < initial_read) {
+  if (read < ring->read) {
     ring->generation++;
   }
   ring->read = read;

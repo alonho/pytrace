@@ -3,9 +3,9 @@
 #include "defs.h"
 #include "shared_ring.h"
 
-Ring *shared_ring_init(void) {
+Ring *shared_ring_init(int read_only) {
   key_t key;
-  int shmid;
+  int shmid, first_attach;
   struct shmid_ds shmds;
   unsigned char *mem;
   Ring *ring;
@@ -15,22 +15,33 @@ Ring *shared_ring_init(void) {
   shmid = shmget(key, RB_SIZE, IPC_CREAT | SHM_R | SHM_W); 
   if (-1 == shmid) {
     perror("shmget");
-    return -1;
+    return NULL;
   }
 
   if(shmctl(shmid, IPC_STAT, &shmds) < 0) {
     perror("shmctl");
-    return -1;
+    return NULL;
   }
-
-  mem = shmat(shmid, (void*) 0x40000000000, SHM_RND);
+  
+  first_attach =  0;
+  mem = shmat(shmid, 
+	      RING_ADDRESS, 
+	      SHM_RND | ((read_only && !first_attach) ? SHM_RDONLY : 0));
   if (-1 == (long) mem) {
     perror("shmat");
-    return -1;
+    return NULL;
   }
-
-  if (shmds.shm_nattch == 1) { // should be protected by a semaphore
+  
+  if (first_attach) { // should be protected by a semaphore
     ring = ring_init_from_memory(mem, RB_SIZE);
+    shmdt(RING_ADDRESS);
+    mem = shmat(shmid, 
+		RING_ADDRESS, 
+		SHM_RND | (read_only ? SHM_RDONLY : 0));
+    if (-1 == (long) mem) {
+      perror("shmat");
+      return NULL;
+    }
   } else {
     ring = ring_from_memory(mem, RB_SIZE);
   }

@@ -10,5 +10,6 @@
 #define MAX_RECORD_SIZE MAX_ARGS * MAX_STR_SIZE * 3 
 // make sure MAX_RECORD_SIZE < RB_SIZE
 #define RB_SIZE 4096000
+#define RING_ADDRESS (void*) 0x40000000000
 
 #endif
