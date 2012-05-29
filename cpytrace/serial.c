@@ -8,8 +8,12 @@
 static Record *record; // pre-allocate a single record to be re-used
 static Argument **arguments; // pre-allocate maximum number of arguments
 static unsigned char *record_buf;
+static pthread_key_t depth_key;
 
 int init_serialize(void) {
+  if (0 != pthread_key_create(&depth_key, NULL)) {
+    return -1;
+  }
   record_buf = malloc(MAX_RECORD_SIZE);
   record = malloc(sizeof(Record)); // TODO: check malloc retval
   record__init(record);
@@ -38,6 +42,18 @@ inline static double floattime()
   return (double) t.tv_sec + t.tv_usec * 0.000001;
 }
 
+inline static int get_depth() {
+  return (int) pthread_getspecific(depth_key); // if called before inc/dec will return NULL -> 0
+}
+
+inline static void increment_depth() {
+  pthread_setspecific(depth_key, get_depth() + 1);
+}  
+
+inline static void decrement_depth() {
+  pthread_setspecific(depth_key, get_depth() - 1);
+}
+
 void handle_trace(PyFrameObject *frame, Record__RecordType record_type, int n_arguments) 
 {
   record->type = record_type;
@@ -46,7 +62,7 @@ void handle_trace(PyFrameObject *frame, Record__RecordType record_type, int n_ar
   record->tid = (unsigned int) pthread_self();
   record->function = PyString_AsString(frame->f_code->co_name);
   record->module = PyString_AsString(frame->f_code->co_filename);
-  record->depth = 0;
+  record->depth = get_depth();
   record__pack(record, record_buf);
   write_record(record_buf, record__get_packed_size(record));
 }
@@ -54,6 +70,7 @@ void handle_trace(PyFrameObject *frame, Record__RecordType record_type, int n_ar
 void handle_call(PyFrameObject *frame) {  
   PyObject *name, *value;
   int i;
+  increment_depth();
   for (i = 0; i < MIN(PyTuple_GET_SIZE(frame->f_code->co_varnames), MAX_ARGS); i++) {
     name = PyTuple_GetItem(frame->f_code->co_varnames, i);
     arguments[i]->name = PyString_AsString(name);
@@ -69,6 +86,7 @@ void handle_call(PyFrameObject *frame) {
 }
 
 inline void handle_return(PyFrameObject *frame, PyObject *value) {
+  decrement_depth();
   arguments[0]->name = "return_value";
   if (NULL == value) {
     value = Py_None;

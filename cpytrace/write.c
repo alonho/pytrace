@@ -3,8 +3,9 @@
 
 static Ring *ring;
 
-void init_writer(void) {
+int init_writer(void) {
   ring = shared_ring_init(0);
+  return 0;
 }
 
 void inline write_record(unsigned char* buf, unsigned long size) {
