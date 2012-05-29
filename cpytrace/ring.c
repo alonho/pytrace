@@ -100,23 +100,38 @@ void ring_write(Ring *ring, unsigned char *buf, unsigned int size) {
   ring->write_index += sizeof(int) + size;
 }
 
+static inline int reader_overflow(RingReader *reader) {
+  return reader->read_index < reader->ring->read_index;
+}
+
+#define SKIP_RECORDS 3
 static void reader_reset(RingReader *reader) {
-  reader->read_index = reader->ring->read_index;
+  unsigned long read_index = reader->ring->read_index;
+  unsigned int size;
+  int records = 0;
+
+  while (records < SKIP_RECORDS && read_index != reader->ring->read_index) {
+    ring_raw_read(reader->ring, (unsigned char*) &size, read_index, sizeof(int));
+    if (reader_overflow(reader)) {
+      records = 0;
+      read_index = reader->ring->read_index;
+    } else {
+      records++;
+      read_index += sizeof(int) + size;
+    }
+  }
+  reader->read_index = read_index;
 }
 
 RingReader *reader_malloc(Ring *ring) {
   RingReader *reader = malloc(sizeof(RingReader));
   reader->ring = ring;
-  reader_reset(reader);
+  reader->read_index = reader->ring->read_index;
   return reader;
 }
 
 void reader_free(RingReader *reader) {
   free(reader);
-}
-
-static inline int reader_overflow(RingReader *reader) {
-  return reader->read_index < reader->ring->read_index;
 }
 
 #define READ_OVERFLOW -1

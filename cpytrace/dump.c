@@ -30,7 +30,7 @@ int main() {
   while (1) {
     switch (size = reader_read(reader, buf)) {
     case 0:
-      usleep(1);
+      usleep(100);
       break;
     case -1:
       overflows++;
