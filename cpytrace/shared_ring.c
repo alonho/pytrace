@@ -3,48 +3,64 @@
 #include "defs.h"
 #include "shared_ring.h"
 
-Ring *shared_ring_init(int read_only) {
-  key_t key;
-  int shmid, first_attach;
-  struct shmid_ds shmds;
-  unsigned char *mem;
-  Ring *ring;
+static int shm_exists(key_t key) {
+  return shmget(key, RB_SIZE, 0) != -1; 
+}
 
+static int shm_init(key_t key) {
+  return shmget(key, RB_SIZE, IPC_CREAT | SHM_R | SHM_W); 
+}
+
+static unsigned char* attach_read(int shmid) {
+  // the address can be removed if ring->buf will be relative
+  return shmat(shmid, RING_ADDRESS, SHM_RND | SHM_RDONLY);
+}
+
+static unsigned char* attach_write(int shmid) {
+  return shmat(shmid, RING_ADDRESS, SHM_RND);
+}
+
+Ring *shared_ring_init(int readonly) {
+  key_t key;
+  Ring *ring;
+  int shmid, shm_existed;
+  unsigned char *mem;
   key = ftok("/tmp", 123456);
+  shm_existed = shm_exists(key);
+    
   // read/write by user and group
-  shmid = shmget(key, RB_SIZE, IPC_CREAT | SHM_R | SHM_W); 
-  if (-1 == shmid) {
+  if (-1 == (shmid = shm_init(key))) {
     perror("shmget");
     return NULL;
   }
 
-  if(shmctl(shmid, IPC_STAT, &shmds) < 0) {
-    perror("shmctl");
-    return NULL;
-  }
-  
-  first_attach = shmds.shm_nattch == 0;
-  mem = shmat(shmid, 
-	      RING_ADDRESS, 
-	      SHM_RND | ((read_only && !first_attach) ? SHM_RDONLY : 0));
-  if (-1 == (long) mem) {
-    perror("shmat");
-    return NULL;
-  }
-  
-  if (first_attach) { // should be protected by a semaphore
-    ring = ring_init_from_memory(mem, RB_SIZE);
-    shmdt(RING_ADDRESS);
-    mem = shmat(shmid, 
-		RING_ADDRESS, 
-		SHM_RND | (read_only ? SHM_RDONLY : 0));
+  if (!shm_existed) {
+    mem = attach_write(shmid);
     if (-1 == (long) mem) {
       perror("shmat");
       return NULL;
     }
+    ring = ring_init_from_memory(mem, RB_SIZE);
+    if (readonly) {
+      shmdt(mem);
+      mem = attach_read(shmid);
+      if (-1 == (long) mem) {
+	perror("shmat");
+	return NULL;
+      }
+      ring_from_memory(mem, RB_SIZE);
+    }
   } else {
+    if (readonly) {
+      mem = attach_read(shmid);      
+    } else {
+      mem = attach_write(shmid);
+    }
+    if (-1 == (long) mem) {
+      perror("shmat");
+      return NULL;
+    }
     ring = ring_from_memory(mem, RB_SIZE);
   }
-
   return ring;
 }
