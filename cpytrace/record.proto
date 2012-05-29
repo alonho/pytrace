@@ -15,9 +15,9 @@ message Record {
   required RecordType type = 1;
   required double time = 2;
   required int64 tid = 3;
-  required string module = 4;
-  optional string class = 5;
+  required int32 depth = 4;
+  required string module = 5;
   required string function = 6;
-  required int32 depth = 7;
+  required int32 lineno = 7;
   repeated Argument arguments = 8;
 }

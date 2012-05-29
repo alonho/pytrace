@@ -41,16 +41,16 @@ struct  _Record
   Record__RecordType type;
   double time;
   int64_t tid;
-  char *module;
-  char *class_;
-  char *function;
   int32_t depth;
+  char *module;
+  char *function;
+  int32_t lineno;
   size_t n_arguments;
   Argument **arguments;
 };
 #define RECORD__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&record__descriptor) \
-    , 0, 0, 0, NULL, NULL, NULL, 0, 0,NULL }
+    , 0, 0, 0, 0, NULL, NULL, 0, 0,NULL }
 
 
 /* Argument methods */

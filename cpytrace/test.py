@@ -18,6 +18,11 @@ def kwargs(**k):
 
 def sanity(a, b=1, *c, **d):
     pass
+
+class A(object):
+
+    def foo(self):
+        return self
     
 if __name__ == '__main__':
     import cpytrace.tracer as tracer

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>;
-#include "record.h"
+#include "record.pb-c.h"
 #include "defs.h"
 #include "ring.h"
 #include "shared_ring.h"
@@ -38,7 +38,10 @@ int main() {
     default:
       traces++;
       rec = record__unpack(NULL, size, buf);
-      printf("%f %s %s %d %d: ", rec->time, rec->module, rec->function, rec->type, rec->depth);
+      for (i = 0; i < rec->depth; i++) {
+	printf(" ");
+      }
+      printf("%f %s %s %d: ", rec->time, rec->module, rec->function, rec->lineno);
       for (i = 0; i < rec->n_arguments; i++) {
 	printf("%s = %s, ", rec->arguments[i]->name, rec->arguments[i]->value);
       }

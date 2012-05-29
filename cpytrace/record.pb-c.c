@@ -5,7 +5,7 @@
 #define PROTOBUF_C_NO_DEPRECATED
 #endif
 
-#include "record.h"
+#include "record.pb-c.h"
 void   argument__init
                      (Argument         *message)
 {
@@ -227,24 +227,24 @@ static const ProtobufCFieldDescriptor record__field_descriptors[8] =
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "module",
+    "depth",
     4,
     PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_STRING,
+    PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(Record, module),
+    PROTOBUF_C_OFFSETOF(Record, depth),
     NULL,
     NULL,
     0,            /* packed */
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "class",
+    "module",
     5,
-    PROTOBUF_C_LABEL_OPTIONAL,
+    PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_STRING,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(Record, class_),
+    PROTOBUF_C_OFFSETOF(Record, module),
     NULL,
     NULL,
     0,            /* packed */
@@ -263,12 +263,12 @@ static const ProtobufCFieldDescriptor record__field_descriptors[8] =
     0,NULL,NULL    /* reserved1,reserved2, etc */
   },
   {
-    "depth",
+    "lineno",
     7,
     PROTOBUF_C_LABEL_REQUIRED,
     PROTOBUF_C_TYPE_INT32,
     0,   /* quantifier_offset */
-    PROTOBUF_C_OFFSETOF(Record, depth),
+    PROTOBUF_C_OFFSETOF(Record, lineno),
     NULL,
     NULL,
     0,            /* packed */
@@ -289,10 +289,10 @@ static const ProtobufCFieldDescriptor record__field_descriptors[8] =
 };
 static const unsigned record__field_indices_by_name[] = {
   7,   /* field[7] = arguments */
-  4,   /* field[4] = class */
-  6,   /* field[6] = depth */
+  3,   /* field[3] = depth */
   5,   /* field[5] = function */
-  3,   /* field[3] = module */
+  6,   /* field[6] = lineno */
+  4,   /* field[4] = module */
   2,   /* field[2] = tid */
   1,   /* field[1] = time */
   0,   /* field[0] = type */

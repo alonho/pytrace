@@ -60,9 +60,10 @@ void handle_trace(PyFrameObject *frame, Record__RecordType record_type, int n_ar
   record->n_arguments = n_arguments;
   record->time = floattime();
   record->tid = (unsigned int) pthread_self();
-  record->function = PyString_AsString(frame->f_code->co_name);
-  record->module = PyString_AsString(frame->f_code->co_filename);
   record->depth = get_depth();
+  record->module = PyString_AsString(frame->f_code->co_filename);
+  record->function = PyString_AsString(frame->f_code->co_name);
+  record->lineno = frame->f_lineno;
   record__pack(record, record_buf);
   write_record(record_buf, record__get_packed_size(record));
 }

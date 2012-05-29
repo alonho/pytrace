@@ -7,7 +7,7 @@ setup(name='cpytrace',
                              sources=["cpytrace/trace.c",
                                       "cpytrace/serial.c",
                                       "cpytrace/write.c",
-                                      "cpytrace/record.c",
+                                      "cpytrace/record.pb-c.c",
                                       "cpytrace/ring.c",
                                       "cpytrace/shared_ring.c"],
                              libraries=["protobuf-c"])])

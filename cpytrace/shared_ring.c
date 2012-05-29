@@ -10,7 +10,7 @@ Ring *shared_ring_init(int read_only) {
   unsigned char *mem;
   Ring *ring;
 
-  key = ftok("/tmp", 12345);
+  key = ftok("/tmp", 123456);
   // read/write by user and group
   shmid = shmget(key, RB_SIZE, IPC_CREAT | SHM_R | SHM_W); 
   if (-1 == shmid) {
