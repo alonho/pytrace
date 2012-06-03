@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <signal.h>;
-#include "record.pb-c.h"
+#include <signal.h>
 #include "defs.h"
 #include "ring.h"
 #include "shared_ring.h"
+#include "record.pb-c.h"
 
 unsigned char *buf;
 Ring *ring;
@@ -21,15 +21,32 @@ void init() {
   ring = shared_ring_init(1);
   reader = reader_malloc(ring);
   signal(SIGINT, print_stats);
+  db_init();
 }
 
-int main() {
+void print_record(Record *rec) {
+  int i;
+  for (i = 0; i < rec->depth; i++) {
+    printf(" ");
+  }
+  printf("%f %s %s %d: ", rec->time, rec->module, rec->function, rec->lineno);
+  for (i = 0; i < rec->n_arguments; i++) {
+    printf("%s = %s", rec->arguments[i]->name, rec->arguments[i]->value);
+    if (rec->n_arguments - 1 > i) {
+      printf(", ");
+    }
+  }
+  printf("\n");
+}
+
+void dump() {
   int size, i;
   Record *rec;
-  init();
   while (1) {
     switch (size = reader_read(reader, buf)) {
     case 0:
+      db_close();
+      return;
       usleep(100);
       break;
     case -1:
@@ -38,14 +55,12 @@ int main() {
     default:
       traces++;
       rec = record__unpack(NULL, size, buf);
-      for (i = 0; i < rec->depth; i++) {
-	printf(" ");
-      }
-      printf("%f %s %s %d: ", rec->time, rec->module, rec->function, rec->lineno);
-      for (i = 0; i < rec->n_arguments; i++) {
-	printf("%s = %s, ", rec->arguments[i]->name, rec->arguments[i]->value);
-      }
-      printf("\n");
+      db_handle_record(rec);
     }
   }
+}
+
+int main() {
+  init();
+  dump();
 }

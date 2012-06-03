@@ -3,20 +3,20 @@
 #include "defs.h"
 #include "shared_ring.h"
 
-static int shm_exists(key_t key) {
+static inline int shm_exists(key_t key) {
   return shmget(key, RB_SIZE, 0) != -1; 
 }
 
-static int shm_init(key_t key) {
+static inline int shm_init(key_t key) {
   return shmget(key, RB_SIZE, IPC_CREAT | SHM_R | SHM_W); 
 }
 
-static unsigned char* attach_read(int shmid) {
+static inline unsigned char* attach_read(int shmid) {
   // the address can be removed if ring->buf will be relative
   return shmat(shmid, RING_ADDRESS, SHM_RND | SHM_RDONLY);
 }
 
-static unsigned char* attach_write(int shmid) {
+static inline unsigned char* attach_write(int shmid) {
   return shmat(shmid, RING_ADDRESS, SHM_RND);
 }
 

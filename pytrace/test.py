@@ -6,7 +6,7 @@ def fib(n):
     return fib(n - 1) + fib(n - 2)
     
 if __name__ == '__main__':
-    n = 15
+    n = 1
     with Tracer():
         import time
         s = time.time()

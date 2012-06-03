@@ -38,7 +38,7 @@ class Tracer(BaseTracer):
         self._db.handle_call(time=datetime.now(),
                              module=__name__,
                              func_name=getframeinfo(frame).function,
-                             from_class="",
+                             lineno=100,
                              depth=self._depth,
                              args=frame.f_locals)
                              

@@ -74,11 +74,10 @@ class Module(Base):
     
 class Func(Base):
     __tablename__ = "funcs"
-    __table_args__ = (UniqueConstraint("module_id", "type_id", "name"),)
+    __table_args__ = (UniqueConstraint("module_id", "lineno", "name"),)
     
     id = Column(Integer, primary_key=True)
     module_id = Column(Integer, ForeignKey("modules.id"), nullable=False)
     module = relationship("Module", backref="funcs")
-    type_id = Column(Integer, ForeignKey("types.id"), nullable=False)
-    type = relationship("Type", backref="funcs")
+    lineno = Column(Integer)
     name = Column(String)
