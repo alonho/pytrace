@@ -53,31 +53,35 @@ void db_close() {
 }
 
 static int handle_module(char *module) {
-  sqlite3_reset(stmt_modules_insert);
-  SQLITE_ASSERT(sqlite3_bind_text(stmt_modules_insert, 1, module, -1, SQLITE_TRANSIENT));
-  sqlite_status = sqlite3_step(stmt_modules_insert);
-  SQLITE_DONE_OR_CONSTRAINT(sqlite_status);
-
   sqlite3_reset(stmt_modules_select);
   SQLITE_ASSERT(sqlite3_bind_text(stmt_modules_select, 1, module, -1, SQLITE_TRANSIENT));
-  assert(SQLITE_ROW == sqlite3_step(stmt_modules_select));
-  return sqlite3_column_int(stmt_modules_select, 0);
+  if (SQLITE_ROW == sqlite3_step(stmt_modules_select)) {
+    return sqlite3_column_int(stmt_modules_select, 0);
+  } else {
+    sqlite3_reset(stmt_modules_insert);
+    SQLITE_ASSERT(sqlite3_bind_text(stmt_modules_insert, 1, module, -1, SQLITE_TRANSIENT));
+    sqlite_status = sqlite3_step(stmt_modules_insert);
+    SQLITE_DONE_OR_CONSTRAINT(sqlite_status);
+    return sqlite3_last_insert_rowid(db);
+  }
 }
 
 static int handle_function(int module_id, int lineno, char *function) {
-  sqlite3_reset(stmt_funcs_insert);
-  SQLITE_ASSERT(sqlite3_bind_int(stmt_funcs_insert, 1, module_id));
-  SQLITE_ASSERT(sqlite3_bind_int(stmt_funcs_insert, 2, lineno));
-  SQLITE_ASSERT(sqlite3_bind_text(stmt_funcs_insert, 3, function, -1, SQLITE_TRANSIENT));
-  sqlite_status = sqlite3_step(stmt_funcs_insert);
-  SQLITE_DONE_OR_CONSTRAINT(sqlite_status);
-  
   sqlite3_reset(stmt_funcs_select);
   SQLITE_ASSERT(sqlite3_bind_int(stmt_funcs_select, 1, module_id));
   SQLITE_ASSERT(sqlite3_bind_int(stmt_funcs_select, 2, lineno));
   SQLITE_ASSERT(sqlite3_bind_text(stmt_funcs_select, 3, function, -1, SQLITE_TRANSIENT));
-  assert(SQLITE_ROW == sqlite3_step(stmt_funcs_select));
-  return sqlite3_column_int(stmt_modules_select, 0);
+  if (SQLITE_ROW == sqlite3_step(stmt_funcs_select)) {
+    return sqlite3_column_int(stmt_modules_select, 0);
+  } else {
+    sqlite3_reset(stmt_funcs_insert);
+    SQLITE_ASSERT(sqlite3_bind_int(stmt_funcs_insert, 1, module_id));
+    SQLITE_ASSERT(sqlite3_bind_int(stmt_funcs_insert, 2, lineno));
+    SQLITE_ASSERT(sqlite3_bind_text(stmt_funcs_insert, 3, function, -1, SQLITE_TRANSIENT));
+    sqlite_status = sqlite3_step(stmt_funcs_insert);
+    SQLITE_DONE_OR_CONSTRAINT(sqlite_status);
+    return sqlite3_last_insert_rowid(db);
+  }
 }
 
 int db_handle_record(Record *rec) {
