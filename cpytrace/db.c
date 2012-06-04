@@ -11,7 +11,6 @@ sqlite3_stmt *stmt_modules_insert;
 sqlite3_stmt *stmt_modules_select;
 sqlite3_stmt *stmt_funcs_insert;
 sqlite3_stmt *stmt_funcs_select;
-int sqlite_status;
 
 void db_init() {
   // config is effective only before open, avoid mutexes for performance
@@ -28,8 +27,7 @@ void db_init() {
         id INTEGER NOT NULL,				       \
         value VARCHAR,					       \
         PRIMARY KEY (id),				       \
-        UNIQUE (value)					       \
-)");
+        UNIQUE (value))");
   
   SQLITE_EXEC("CREATE TABLE IF NOT EXISTS funcs (                       \
         id INTEGER NOT NULL,						\
@@ -39,6 +37,35 @@ void db_init() {
         PRIMARY KEY (id),						\
         UNIQUE (module_id, lineno, name),				\
         FOREIGN KEY(module_id) REFERENCES modules (id))");
+
+  SQLITE_EXEC("CREATE TABLE IF NOT EXISTS arg_names ( \
+        id INTEGER NOT NULL,			      \
+        value VARCHAR,				      \
+        PRIMARY KEY (id),			      \
+        UNIQUE (value))");
+
+  SQLITE_EXEC("CREATE TABLE IF NOT EXISTS arg_values ( \
+        id INTEGER NOT NULL,			       \
+        value VARCHAR,				       \
+        PRIMARY KEY (id),			       \
+        UNIQUE (value))");
+
+  SQLITE_EXEC("CREATE TABLE IF NOT EXISTS types ( \
+        id INTEGER NOT NULL,			  \
+        value VARCHAR,				  \
+        PRIMARY KEY (id),			  \
+        UNIQUE (value))");
+  
+  SQLITE_EXEC("CREATE TABLE IF NOT EXISTS args (        \
+        id INTEGER NOT NULL,				\
+        type_id INTEGER NOT NULL,			\
+        name_id INTEGER NOT NULL,			\
+        value_id INTEGER NOT NULL,			\
+        PRIMARY KEY (id),				\
+        UNIQUE (type_id, name_id, value_id),		\
+        FOREIGN KEY(type_id) REFERENCES types (id),	\
+        FOREIGN KEY(name_id) REFERENCES arg_names (id), \
+        FOREIGN KEY(value_id) REFERENCES arg_values (id))");
 
   SQLITE_EXEC("BEGIN");
 
@@ -53,6 +80,7 @@ void db_close() {
 }
 
 static int handle_module(char *module) {
+  int sqlite_status;
   sqlite3_reset(stmt_modules_select);
   SQLITE_ASSERT(sqlite3_bind_text(stmt_modules_select, 1, module, -1, SQLITE_TRANSIENT));
   if (SQLITE_ROW == sqlite3_step(stmt_modules_select)) {
@@ -67,6 +95,7 @@ static int handle_module(char *module) {
 }
 
 static int handle_function(int module_id, int lineno, char *function) {
+  int sqlite_status;
   sqlite3_reset(stmt_funcs_select);
   SQLITE_ASSERT(sqlite3_bind_int(stmt_funcs_select, 1, module_id));
   SQLITE_ASSERT(sqlite3_bind_int(stmt_funcs_select, 2, lineno));
@@ -84,63 +113,26 @@ static int handle_function(int module_id, int lineno, char *function) {
   }
 }
 
+static int handle_trace(Record__RecordType type, double time, int depth ,long tid, int func_id) {
+  return 0;
+}
+
+static void handle_argument(int trace_id, Argument *arg) {
+  // update ..
+  // update assoc
+}
+
 int db_handle_record(Record *rec) {
-  handle_function(handle_module(rec->module), rec->lineno, rec->function);
+  int i;
+  int func_id = handle_function(handle_module(rec->module), rec->lineno, rec->function);
+  int trace_id = handle_trace(rec->type, rec->time, rec->depth, rec->tid, func_id);
+  for (i=0; i < rec->n_arguments; i++) {
+    handle_argument(trace_id, rec->arguments[i]));
+  }
 }
 
 /*
-CREATE TABLE modules (
-        id INTEGER NOT NULL, 
-        value VARCHAR, 
-        PRIMARY KEY (id), 
-        UNIQUE (value)
-)
-
-CREATE TABLE arg_names (
-        id INTEGER NOT NULL, 
-        value VARCHAR, 
-        PRIMARY KEY (id), 
-        UNIQUE (value)
-)
-
-CREATE TABLE arg_values (
-        id INTEGER NOT NULL, 
-        value VARCHAR, 
-        PRIMARY KEY (id), 
-        UNIQUE (value)
-)
-
-CREATE TABLE types (
-        id INTEGER NOT NULL, 
-        value VARCHAR, 
-        PRIMARY KEY (id), 
-        UNIQUE (value)
-)
-
-CREATE TABLE args (
-        id INTEGER NOT NULL, 
-        type_id INTEGER NOT NULL, 
-        name_id INTEGER NOT NULL, 
-        value_id INTEGER NOT NULL, 
-        PRIMARY KEY (id), 
-        UNIQUE (type_id, name_id, value_id), 
-        FOREIGN KEY(type_id) REFERENCES types (id), 
-        FOREIGN KEY(name_id) REFERENCES arg_names (id), 
-        FOREIGN KEY(value_id) REFERENCES arg_values (id)
-)
-
-CREATE TABLE funcs (
-        id INTEGER NOT NULL, 
-        module_id INTEGER NOT NULL, 
-        type_id INTEGER NOT NULL, 
-        name VARCHAR, 
-        PRIMARY KEY (id), 
-        UNIQUE (module_id, type_id, name), 
-        FOREIGN KEY(module_id) REFERENCES modules (id), 
-        FOREIGN KEY(type_id) REFERENCES types (id)
-)
-
-CREATE TABLE traces (
+CREATE TABLE IF NOT EXISTS traces (
         id INTEGER NOT NULL, 
         type VARCHAR(9), 
         time DATETIME, 
@@ -154,7 +146,7 @@ CREATE TABLE traces (
 CREATE INDEX ix_traces_time ON traces (time)
 
 
-CREATE TABLE association (
+CREATE TABLE IF NOT EXISTS association (
         trace_id INTEGER, 
         arg_id INTEGER, 
         FOREIGN KEY(trace_id) REFERENCES traces (id), 
@@ -162,7 +154,6 @@ CREATE TABLE association (
 )
 
 
-PRAGMA journal_mode=WAL;
 INSERT INTO modules (value) VALUES (?)
 INSERT INTO types (value) VALUES (?)
 INSERT INTO funcs (module_id, type_id, name) VALUES (?, ?, ?)
