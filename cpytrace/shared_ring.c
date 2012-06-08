@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <sys/shm.h>
 #include "defs.h"
 #include "shared_ring.h"

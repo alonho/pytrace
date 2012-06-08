@@ -38,13 +38,10 @@ class A(object):
 if __name__ == '__main__':
     import cpytrace.tracer as tracer
     tracer.start()
-    """
-    fib(30)
+    fib(28)
     simple(15)
     default()
     vararg(1, 2, 3)
     kwargs(a1=0, a2=1, a3=2)
     mix(100)
-    """
-    exceptions()
     tracer.stop()
