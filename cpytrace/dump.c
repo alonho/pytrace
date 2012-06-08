@@ -39,23 +39,31 @@ void print_record(Record *rec) {
   printf("\n");
 }
 
+#define COMMIT_INTERVAL 5000
+
 void dump() {
-  int size, i;
+  int size, count=0;
   Record *rec;
   while (1) {
     switch (size = reader_read(reader, buf)) {
     case 0:
-      db_close();
-      return;
       usleep(100);
+      db_commit();
+      count = 0;
       break;
     case -1:
       overflows++;
       break;
     default:
       traces++;
+      count++;
       rec = record__unpack(NULL, size, buf);
+      //print_record(rec);
       db_handle_record(rec);
+      if (COMMIT_INTERVAL < count) {
+	count = 0;
+	db_commit();
+      }
     }
   }
 }

@@ -16,9 +16,20 @@ def vararg(*a):
 def kwargs(**k):
     pass
 
-def sanity(a, b=1, *c, **d):
+def mix(a, b=1, *c, **d):
     pass
 
+def raises(x):
+    raise x
+
+def exceptions():
+    try:
+        raises(ValueError("BLA"))
+    except:
+        pass
+    else:
+        assert False
+    
 class A(object):
 
     def foo(self):
@@ -27,8 +38,13 @@ class A(object):
 if __name__ == '__main__':
     import cpytrace.tracer as tracer
     tracer.start()
+    """
     fib(30)
-    sanity(100000000000000000, [10]*200)
+    simple(15)
+    default()
+    vararg(1, 2, 3)
+    kwargs(a1=0, a2=1, a3=2)
+    mix(100)
+    """
+    exceptions()
     tracer.stop()
-    # 2.5 seconds run time with traces (1 second spent by record_pack)
-    # 0.387 without

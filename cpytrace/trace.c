@@ -15,7 +15,7 @@ trace_func(PyObject *obj, PyFrameObject *frame, int what, PyObject *arg)
   case PyTrace_RETURN:
     handle_return(frame, arg);
     break;
-  case PyTrace_EXCEPTION:
+  case PyTrace_EXCEPTION: // setprofile translates exceptions to calls
     handle_exception(frame, arg);
   }
   return 0;

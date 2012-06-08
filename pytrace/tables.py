@@ -28,8 +28,9 @@ class Trace(Base):
 
     id = Column(Integer, primary_key=True)
     type = Column(Enum("call", "return", "exception"))
-    time = Column(DateTime, index=True)
+    time = Column(Integer, index=True)
     depth = Column(Integer)
+    tid = Column(Integer)
     func_id = Column(Integer, ForeignKey('funcs.id'))
     func = relationship("Func", backref="traces")
     args = relationship("Arg",
