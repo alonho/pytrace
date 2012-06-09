@@ -29,7 +29,7 @@ def exceptions():
         pass
     else:
         assert False
-    
+        
 class A(object):
 
     def foo(self):
@@ -45,4 +45,5 @@ if __name__ == '__main__':
     kwargs(a1=0, a2=1, a3=2)
     exceptions()
     mix(100)
+    simple("a" * 3000)
     tracer.stop()

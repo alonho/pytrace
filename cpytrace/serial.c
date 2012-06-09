@@ -28,9 +28,9 @@ int init_serialize(void) {
 }
 
 inline char *pyobj_to_cstr(PyObject *obj) {
-  PyObject *string = PyObject_Repr(obj);
+  PyObject *string = PyObject_Str(obj);
   if (NULL == string) {
-    return "REPR FAILED";
+    return "STR FAILED";
   }
   return PyString_AsString(string);
 }
