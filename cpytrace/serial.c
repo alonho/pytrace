@@ -35,16 +35,21 @@ inline char *pyobj_to_cstr(PyObject *obj) {
   return PyString_AsString(string);
 }
 
-void set_string(ProtobufCBinaryData *bin_data, char *str) {
-  bin_data->data = (unsigned char*) str;
-  bin_data->len = MIN(strlen(str), MAX_STR_SIZE);
+inline static int min(int x, int y) {
+  return (x < y) ? x : y;
 }
+
 
 inline static double floattime(void)
 {
   struct timeval t;
   gettimeofday(&t, NULL);
   return (double) t.tv_sec + t.tv_usec * 0.000001;
+}
+
+void set_string(ProtobufCBinaryData *bin_data, char *str) {
+  bin_data->data = (unsigned char*) str;
+  bin_data->len = min(strlen(str), MAX_STR_SIZE);
 }
 
 inline static int get_depth(void) {
@@ -77,7 +82,7 @@ inline void handle_call(PyFrameObject *frame) {
   PyObject *name, *value;
   int i;
   increment_depth();
-  for (i = 0; i < MIN(PyTuple_GET_SIZE(frame->f_code->co_varnames), MAX_ARGS); i++) {
+  for (i = 0; i < min(PyTuple_GET_SIZE(frame->f_code->co_varnames), MAX_ARGS); i++) {
     name = PyTuple_GetItem(frame->f_code->co_varnames, i);
     set_string(&(arguments[i]->name), PyString_AsString(name));
     if (NULL == frame->f_locals) {
