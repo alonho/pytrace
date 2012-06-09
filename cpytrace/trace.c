@@ -24,15 +24,15 @@ trace_func(PyObject *obj, PyFrameObject *frame, int what, PyObject *arg)
 static PyObject *
 start(PyObject *self, PyObject *args)
 {
-  PyEval_SetProfile((Py_tracefunc)trace_func,
-		    (PyObject*)self);
+  PyEval_SetTrace((Py_tracefunc)trace_func,
+		  (PyObject*)self);
   return Py_BuildValue("");
 }
 
 static PyObject *
 stop(PyObject *self, PyObject *args_unused)
 {
-  PyEval_SetProfile(NULL, NULL);
+  PyEval_SetTrace(NULL, NULL);
   return Py_BuildValue("");
 }
 

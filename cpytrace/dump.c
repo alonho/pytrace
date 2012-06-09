@@ -58,7 +58,7 @@ void dump() {
       traces++;
       count++;
       rec = record__unpack(NULL, size, buf);
-      //print_record(rec);
+      print_record(rec);
       db_handle_record(rec);
       if (COMMIT_INTERVAL < count) {
 	count = 0;

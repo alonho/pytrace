@@ -8,6 +8,6 @@ int init_writer(void) {
   return ring != 0;
 }
 
-void inline write_record(unsigned char* buf, unsigned long size) {
+inline void write_record(unsigned char* buf, unsigned long size) {
   ring_write(ring, buf, size);
 }

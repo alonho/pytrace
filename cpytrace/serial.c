@@ -99,8 +99,8 @@ inline void handle_return(PyFrameObject *frame, PyObject *value) {
     
 inline void handle_exception(PyFrameObject *frame, PyObject *exc_info) {
   arguments[0]->name = "exception";
-  arguments[0]->type = pyobj_to_cstr(PyTuple_GET_ITEM(exc_info, 1));
-  arguments[0]->value = pyobj_to_cstr(PyTuple_GET_ITEM(exc_info, 2));
+  arguments[0]->type = pyobj_to_cstr(PyTuple_GET_ITEM(exc_info, 0));
+  arguments[0]->value = pyobj_to_cstr(PyTuple_GET_ITEM(exc_info, 1));
   handle_trace(frame, RECORD__RECORD_TYPE__EXCEPTION, 1);
 }
 
