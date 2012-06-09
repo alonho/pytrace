@@ -1,8 +1,8 @@
 
 message Argument {
-  required string name = 1;
-  required string type = 2;
-  required string value = 3;
+  required bytes name = 1;
+  required bytes type = 2;
+  required bytes value = 3;
 }
 
 message Record {
@@ -16,8 +16,8 @@ message Record {
   required double time = 2;
   required int64 tid = 3;
   required int32 depth = 4;
-  required string module = 5;
-  required string function = 6;
+  required bytes module = 5;
+  required bytes function = 6;
   required int32 lineno = 7;
   repeated Argument arguments = 8;
 }

@@ -27,7 +27,7 @@ int init_serialize(void) {
   return init_writer();
 }
 
-char *pyobj_to_cstr(PyObject *obj) {
+inline char *pyobj_to_cstr(PyObject *obj) {
   PyObject *string = PyObject_Repr(obj);
   if (NULL == string) {
     return "REPR FAILED";
@@ -35,14 +35,19 @@ char *pyobj_to_cstr(PyObject *obj) {
   return PyString_AsString(string);
 }
 
-static double floattime(void)
+void set_string(ProtobufCBinaryData *bin_data, char *str) {
+  bin_data->data = (unsigned char*) str;
+  bin_data->len = MIN(strlen(str), MAX_STR_SIZE);
+}
+
+inline static double floattime(void)
 {
   struct timeval t;
   gettimeofday(&t, NULL);
   return (double) t.tv_sec + t.tv_usec * 0.000001;
 }
 
-static int get_depth(void) {
+inline static int get_depth(void) {
   return (int) (long) pthread_getspecific(depth_key); // if called before inc/dec will return NULL -> 0
 }
 
@@ -61,46 +66,46 @@ void handle_trace(PyFrameObject *frame, Record__RecordType record_type, int n_ar
   record->time = floattime();
   record->tid = (long) pthread_self();
   record->depth = get_depth();
-  record->module = PyString_AsString(frame->f_code->co_filename);
-  record->function = PyString_AsString(frame->f_code->co_name);
+  set_string(&(record->module), PyString_AsString(frame->f_code->co_filename));
+  set_string(&(record->function), PyString_AsString(frame->f_code->co_name));
   record->lineno = frame->f_lineno;
   record__pack(record, record_buf);
   write_record(record_buf, (unsigned long) record__get_packed_size(record));
 }
 
-void handle_call(PyFrameObject *frame) {  
+inline void handle_call(PyFrameObject *frame) {  
   PyObject *name, *value;
   int i;
   increment_depth();
   for (i = 0; i < MIN(PyTuple_GET_SIZE(frame->f_code->co_varnames), MAX_ARGS); i++) {
     name = PyTuple_GetItem(frame->f_code->co_varnames, i);
-    arguments[i]->name = PyString_AsString(name);
+    set_string(&(arguments[i]->name), PyString_AsString(name));
     if (NULL == frame->f_locals) {
       value = frame->f_localsplus[i];
     } else {
       value = PyDict_GetItem(frame->f_locals, name);
     }
-    arguments[i]->type = pyobj_to_cstr((PyObject*) value->ob_type);
-    arguments[i]->value = pyobj_to_cstr(value);
+    set_string(&(arguments[i]->type), pyobj_to_cstr((PyObject*) value->ob_type));
+    set_string(&(arguments[i]->value), pyobj_to_cstr(value));
   }
   handle_trace(frame, RECORD__RECORD_TYPE__CALL, i);
 }
 
 inline void handle_return(PyFrameObject *frame, PyObject *value) {
   decrement_depth();
-  arguments[0]->name = "return_value";
+  set_string(&(arguments[0]->name), "return_value");
   if (NULL == value) {
     value = Py_None;
   }
-  arguments[0]->type = pyobj_to_cstr((PyObject*) value->ob_type);
-  arguments[0]->value = pyobj_to_cstr(value);
+  set_string(&(arguments[0]->type), pyobj_to_cstr((PyObject*) value->ob_type));
+  set_string(&(arguments[0]->value), pyobj_to_cstr(value));
   handle_trace(frame, RECORD__RECORD_TYPE__RETURN, 1);
 }
     
 inline void handle_exception(PyFrameObject *frame, PyObject *exc_info) {
-  arguments[0]->name = "exception";
-  arguments[0]->type = pyobj_to_cstr(PyTuple_GET_ITEM(exc_info, 0));
-  arguments[0]->value = pyobj_to_cstr(PyTuple_GET_ITEM(exc_info, 1));
+  set_string(&(arguments[0]->name), "exception");
+  set_string(&(arguments[0]->type), pyobj_to_cstr(PyTuple_GET_ITEM(exc_info, 0)));
+  set_string(&(arguments[0]->value), pyobj_to_cstr(PyTuple_GET_ITEM(exc_info, 1)));
   handle_trace(frame, RECORD__RECORD_TYPE__EXCEPTION, 1);
 }
 

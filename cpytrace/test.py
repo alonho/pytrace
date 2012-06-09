@@ -43,5 +43,6 @@ if __name__ == '__main__':
     default()
     vararg(1, 2, 3)
     kwargs(a1=0, a2=1, a3=2)
+    exceptions()
     mix(100)
     tracer.stop()

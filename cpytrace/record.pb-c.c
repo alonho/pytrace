@@ -98,7 +98,7 @@ static const ProtobufCFieldDescriptor argument__field_descriptors[3] =
     "name",
     1,
     PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_STRING,
+    PROTOBUF_C_TYPE_BYTES,
     0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Argument, name),
     NULL,
@@ -110,7 +110,7 @@ static const ProtobufCFieldDescriptor argument__field_descriptors[3] =
     "type",
     2,
     PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_STRING,
+    PROTOBUF_C_TYPE_BYTES,
     0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Argument, type),
     NULL,
@@ -122,7 +122,7 @@ static const ProtobufCFieldDescriptor argument__field_descriptors[3] =
     "value",
     3,
     PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_STRING,
+    PROTOBUF_C_TYPE_BYTES,
     0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Argument, value),
     NULL,
@@ -242,7 +242,7 @@ static const ProtobufCFieldDescriptor record__field_descriptors[8] =
     "module",
     5,
     PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_STRING,
+    PROTOBUF_C_TYPE_BYTES,
     0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Record, module),
     NULL,
@@ -254,7 +254,7 @@ static const ProtobufCFieldDescriptor record__field_descriptors[8] =
     "function",
     6,
     PROTOBUF_C_LABEL_REQUIRED,
-    PROTOBUF_C_TYPE_STRING,
+    PROTOBUF_C_TYPE_BYTES,
     0,   /* quantifier_offset */
     PROTOBUF_C_OFFSETOF(Record, function),
     NULL,

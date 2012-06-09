@@ -26,13 +26,13 @@ typedef enum _Record__RecordType {
 struct  _Argument
 {
   ProtobufCMessage base;
-  char *name;
-  char *type;
-  char *value;
+  ProtobufCBinaryData name;
+  ProtobufCBinaryData type;
+  ProtobufCBinaryData value;
 };
 #define ARGUMENT__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&argument__descriptor) \
-    , NULL, NULL, NULL }
+    , {0,NULL}, {0,NULL}, {0,NULL} }
 
 
 struct  _Record
@@ -42,15 +42,15 @@ struct  _Record
   double time;
   int64_t tid;
   int32_t depth;
-  char *module;
-  char *function;
+  ProtobufCBinaryData module;
+  ProtobufCBinaryData function;
   int32_t lineno;
   size_t n_arguments;
   Argument **arguments;
 };
 #define RECORD__INIT \
  { PROTOBUF_C_MESSAGE_INIT (&record__descriptor) \
-    , 0, 0, 0, 0, NULL, NULL, 0, 0,NULL }
+    , 0, 0, 0, 0, {0,NULL}, {0,NULL}, 0, 0,NULL }
 
 
 /* Argument methods */

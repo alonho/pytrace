@@ -113,38 +113,38 @@ void db_init() {
   db_begin();
 }
 
-static int get_or_create(sqlite3_stmt *select, sqlite3_stmt *insert, char *sym) {
+static int get_or_create(sqlite3_stmt *select, sqlite3_stmt *insert, ProtobufCBinaryData *sym) {
   int sqlite_status;
   sqlite3_reset(select);
-  SQLITE_ASSERT(sqlite3_bind_text(select, 1, sym, -1, SQLITE_TRANSIENT));
+  SQLITE_ASSERT(sqlite3_bind_text(select, 1, sym->data, sym->len, SQLITE_TRANSIENT));
   if (SQLITE_ROW == sqlite3_step(select)) {
     return sqlite3_column_int(select, 0);
   } else {
     sqlite3_reset(insert);
-    SQLITE_ASSERT(sqlite3_bind_text(insert, 1, sym, -1, SQLITE_TRANSIENT));
+    SQLITE_ASSERT(sqlite3_bind_text(insert, 1, sym->data, sym->len, SQLITE_TRANSIENT));
     sqlite_status = sqlite3_step(insert);
     SQLITE_DONE_OR_CONSTRAINT(sqlite_status);
     return sqlite3_last_insert_rowid(db);
   }  
 }
 
-static int handle_module(char *module) {
+static int handle_module(ProtobufCBinaryData *module) {
   return get_or_create(stmt_modules_select, stmt_modules_insert, module);
 }
 
-static int handle_function(int module_id, int lineno, char *function) {
+static int handle_function(int module_id, int lineno, ProtobufCBinaryData *function) {
   int sqlite_status;
   sqlite3_reset(stmt_funcs_select);
   SQLITE_ASSERT(sqlite3_bind_int(stmt_funcs_select, 1, module_id));
   SQLITE_ASSERT(sqlite3_bind_int(stmt_funcs_select, 2, lineno));
-  SQLITE_ASSERT(sqlite3_bind_text(stmt_funcs_select, 3, function, -1, SQLITE_TRANSIENT));
+  SQLITE_ASSERT(sqlite3_bind_text(stmt_funcs_select, 3, function->data, function->len, SQLITE_TRANSIENT));
   if (SQLITE_ROW == sqlite3_step(stmt_funcs_select)) {
     return sqlite3_column_int(stmt_funcs_select, 0);
   } else {
     sqlite3_reset(stmt_funcs_insert);
     SQLITE_ASSERT(sqlite3_bind_int(stmt_funcs_insert, 1, module_id));
     SQLITE_ASSERT(sqlite3_bind_int(stmt_funcs_insert, 2, lineno));
-    SQLITE_ASSERT(sqlite3_bind_text(stmt_funcs_insert, 3, function, -1, SQLITE_TRANSIENT));
+    SQLITE_ASSERT(sqlite3_bind_text(stmt_funcs_insert, 3, function->data, function->len, SQLITE_TRANSIENT));
     sqlite_status = sqlite3_step(stmt_funcs_insert);
     SQLITE_DONE_OR_CONSTRAINT(sqlite_status);
     return sqlite3_last_insert_rowid(db);
@@ -166,20 +166,20 @@ static int handle_trace(Record__RecordType type, double time, int depth ,long ti
 }
 
 
-static int handle_type(char *type) {
+static int handle_type(ProtobufCBinaryData *type) {
   return get_or_create(stmt_types_select, stmt_types_insert, type);
 }
 
-static int handle_arg_name(char *name) {
+static int handle_arg_name(ProtobufCBinaryData *name) {
   return get_or_create(stmt_arg_names_select, stmt_arg_names_insert, name);
 }
 
-static int handle_arg_value(char *name) {
+static int handle_arg_value(ProtobufCBinaryData *name) {
   return get_or_create(stmt_arg_values_select, stmt_arg_values_insert, name);
 }
 
 static int handle_argument(Argument *arg) {
-  int sqlite_status, type_id=handle_type(arg->type), name_id=handle_arg_name(arg->name), value_id=handle_arg_value(arg->value);
+  int sqlite_status, type_id=handle_type(&arg->type), name_id=handle_arg_name(&arg->name), value_id=handle_arg_value(&arg->value);
   sqlite3_reset(stmt_args_select);
   SQLITE_ASSERT(sqlite3_bind_int(stmt_args_select, 1, type_id));
   SQLITE_ASSERT(sqlite3_bind_int(stmt_args_select, 2, name_id));
@@ -208,7 +208,7 @@ static void handle_trace_argument(int trace_id, Argument *arg) {
 
 int db_handle_record(Record *rec) {
   int i;
-  int func_id = handle_function(handle_module(rec->module), rec->lineno, rec->function);
+  int func_id = handle_function(handle_module(&rec->module), rec->lineno, &rec->function);
   int trace_id = handle_trace(rec->type, rec->time, rec->depth, rec->tid, func_id);
   for (i=0; i < rec->n_arguments; i++) {
     handle_trace_argument(trace_id, rec->arguments[i]);
