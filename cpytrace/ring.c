@@ -104,7 +104,7 @@ static inline int reader_overflow(RingReader *reader) {
   return reader->read_index < reader->ring->read_index;
 }
 
-#define SKIP_RECORDS 3
+#define SKIP_RECORDS 10
 static void reader_reset(RingReader *reader) {
   unsigned long read_index = reader->ring->read_index;
   unsigned int size;

@@ -24,6 +24,21 @@ void init() {
   db_init();
 }
 
+void print_record(Record *rec) {
+  int i;
+  for (i = 0; i < rec->depth; i++) {
+    printf(" ");
+  }
+  printf("%f %s %s %d: ", rec->time, rec->module.data, rec->function.data, rec->lineno);
+  for (i = 0; i < rec->n_arguments; i++) {
+    printf("%s = %s", rec->arguments[i]->name.data, rec->arguments[i]->value.data);
+    if (rec->n_arguments - 1 > i) {
+      printf(", ");
+    }
+  }
+  printf("\n");
+}
+
 #define COMMIT_INTERVAL 5000
 
 void dump() {
@@ -43,6 +58,7 @@ void dump() {
       traces++;
       count++;
       rec = record__unpack(NULL, size, buf);
+      //print_record(rec);
       db_handle_record(rec);
       if (COMMIT_INTERVAL < count) {
 	count = 0;
