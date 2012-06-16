@@ -1,27 +1,34 @@
 import urwid
+from db import DB
 
-palette = [
-    ('banner', '', '', '', '#f9f', '#60d'),
-    ('streak', '', '', '', 'g50', '#404'),
-    ('inside', '', '', '', 'g38', '#808'),
-    ('outside', '', '', '', 'g27', '#a06'),
-    ('bg', '', '', '', 'g7', '#d06'),]
+class Selectable(urwid.FlowWidget):
+    def selectable(self):
+        return True
+    def keypress(self, size, key):
+        pass
+            
+data = list(DB().fetch_pretty())
+palette = [('header', 'white', 'black'),
+           ('reveal focus', 'black', 'dark cyan', 'standout'),]
+content = urwid.SimpleListWalker(map(urwid.Text, data))
+listbox = urwid.ListBox(content)
+show_key = urwid.Text(u"", wrap='clip')
+head = urwid.AttrMap(show_key, 'header')
+top = urwid.Frame(listbox, head)
 
-txt = urwid.Text(('banner', u" Hello World "), align='center')
-map1 = urwid.AttrMap(txt, 'streak')
-pile = urwid.Pile([
-    urwid.AttrMap(urwid.Divider(), 'outside'),
-    urwid.AttrMap(urwid.Divider(), 'inside'),
-    map1,
-    urwid.AttrMap(urwid.Divider(), 'inside'),
-    urwid.AttrMap(urwid.Divider(), 'outside')])
-fill = urwid.Filler(pile)
-map2 = urwid.AttrMap(fill, 'bg')
+def show_all_input(input, raw):
+    show_key.set_text(u"Pressed: " + u" ".join([
+        unicode(i) for i in input]))
+    return input
 
-def exit_on_q(input):
-    if input in ('q', 'Q'):
+def exit_on_cr(input):
+    if input == "G":
+        content.set_focus(len(data) - 1)
+    elif input == "p":
+        content.set_focus(0)
+    elif input == 'enter':
         raise urwid.ExitMainLoop()
 
-loop = urwid.MainLoop(map2, palette, unhandled_input=exit_on_q)
-loop.screen.set_terminal_properties(colors=256)
+loop = urwid.MainLoop(top, palette,
+    input_filter=show_all_input, unhandled_input=exit_on_cr)
 loop.run()
