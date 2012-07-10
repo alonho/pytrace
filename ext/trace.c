@@ -47,5 +47,5 @@ void
 inittracer(void)
 {
   init_serialize();
-  Py_InitModule3("cpytrace.tracer", methods, MODULE_DOC);
+  Py_InitModule3("pytrace.tracer", methods, MODULE_DOC);
 }

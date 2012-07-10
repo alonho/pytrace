@@ -1,13 +1,13 @@
 from setuptools import setup
 from distutils.core import Extension
 
-setup(name='cpytrace',
-      packages=['cpytrace'],
-      ext_modules=[Extension("cpytrace.tracer",
-                             sources=["cpytrace/trace.c",
-                                      "cpytrace/serial.c",
-                                      "cpytrace/write.c",
-                                      "cpytrace/record.pb-c.c",
-                                      "cpytrace/ring.c",
-                                      "cpytrace/shared_ring.c"],
+setup(name='pytrace',
+      packages=['pytrace'],
+      ext_modules=[Extension("pytrace.tracer",
+                             sources=["ext/trace.c",
+                                      "ext/serial.c",
+                                      "ext/write.c",
+                                      "ext/ring.c",
+                                      "ext/shared_ring.c",
+                                      "ext/record.pb-c.c"],
                              libraries=["protobuf-c"])])

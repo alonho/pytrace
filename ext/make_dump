@@ -1,0 +1,1 @@
+gcc -O2 -g -lsqlite3 -lprotobuf-c -I/Users/alon/source/inturms/intustall/deps/osx/include/python2.7 dump.c ring.c shared_ring.c record.pb-c.c db.c

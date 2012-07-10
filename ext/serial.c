@@ -39,7 +39,6 @@ inline static int min(int x, int y) {
   return (x < y) ? x : y;
 }
 
-
 inline static double floattime(void)
 {
   struct timeval t;
