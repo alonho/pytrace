@@ -8,6 +8,9 @@ setup(name='pytrace',
                                       "ext/serial.c",
                                       "ext/write.c",
                                       "ext/ring.c",
+                                      "ext/dump.c",
+                                      "ext/db.c",
                                       "ext/shared_ring.c",
                                       "ext/record.pb-c.c"],
-                             libraries=["protobuf-c"])])
+                             libraries=["protobuf-c",
+                                        "sqlite3"])])

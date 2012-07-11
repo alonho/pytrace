@@ -6,22 +6,24 @@
 #include "shared_ring.h"
 #include "record.pb-c.h"
 
-unsigned char *buf;
 Ring *ring;
 RingReader *reader;
+unsigned char *buf;
 
-int traces = 0, overflows = 0;
-
-void print_stats(int sig) {
-  printf("traces: %d, overflows: %d\n", traces, overflows);
+void dump_init() {
+  reader = reader_malloc(ring);
+  buf = malloc(MAX_RECORD_SIZE);
+  db_init();
 }
 
-void init() {
-  buf = malloc(MAX_RECORD_SIZE);
+void dump_process_init() {
   ring = shared_ring_init(1);
-  reader = reader_malloc(ring);
-  signal(SIGINT, print_stats);
-  db_init();
+  dump_init();
+}
+
+void dump_thread_init() {
+  ring = ring_init_from_memory((void*) RING_ADDRESS, RB_SIZE);
+  dump_init();
 }
 
 void print_record(Record *rec) {
@@ -39,8 +41,7 @@ void print_record(Record *rec) {
   printf("\n");
 }
 
-#define COMMIT_INTERVAL 5000
-
+int print_records = 0;
 void dump() {
   int size, count=0;
   Record *rec;
@@ -52,13 +53,13 @@ void dump() {
       count = 0;
       break;
     case -1:
-      overflows++;
       break;
     default:
-      traces++;
       count++;
       rec = record__unpack(NULL, size, buf);
-      //print_record(rec);
+      if (print_records) {
+	print_record(rec);
+      }
       db_handle_record(rec);
       if (COMMIT_INTERVAL < count) {
 	count = 0;
@@ -68,7 +69,12 @@ void dump() {
   }
 }
 
-int main() {
-  init();
+int dump_thread_main() {
+  dump_thread_init();
   dump();
+}
+
+pthread_t dump_thread;
+void dump_main_in_thread() {
+  pthread_create(&dump_thread, NULL, dump_thread_main, NULL);
 }

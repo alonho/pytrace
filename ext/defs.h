@@ -9,5 +9,6 @@
 #define RB_SIZE 4194304 // 4MB
 // the address is only for sync between the reader/writer
 #define RING_ADDRESS (void*) 0x40000000000
+#define COMMIT_INTERVAL 5000
 
 #endif

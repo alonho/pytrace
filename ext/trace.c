@@ -2,6 +2,7 @@
 #include "Python.h"
 #include "frameobject.h"
 #include "serial.h"
+#include "dump.h"
 
 #define MODULE_DOC PyDoc_STR("C extension for fast function tracing.")
 
@@ -26,6 +27,7 @@ start(PyObject *self, PyObject *args)
 {
   PyEval_SetTrace((Py_tracefunc)trace_func,
 		  (PyObject*)self);
+  start_dumper();
   return Py_BuildValue("");
 }
 
@@ -34,6 +36,16 @@ stop(PyObject *self, PyObject *args_unused)
 {
   PyEval_SetTrace(NULL, NULL);
   return Py_BuildValue("");
+}
+
+void
+start_dumper() {
+  dump_main_in_thread();
+}
+
+void 
+stop_dumper() {
+
 }
 
 static PyMethodDef

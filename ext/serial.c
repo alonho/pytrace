@@ -72,7 +72,7 @@ void handle_trace(PyFrameObject *frame, Record__RecordType record_type, int n_ar
   record->depth = get_depth();
   set_string(&(record->module), PyString_AsString(frame->f_code->co_filename));
   set_string(&(record->function), PyString_AsString(frame->f_code->co_name));
-  record->lineno = frame->f_lineno;
+  record->lineno = frame->f_code->co_firstlineno;
   record__pack(record, record_buf);
   write_record(record_buf, (unsigned long) record__get_packed_size(record));
 }

@@ -4,6 +4,13 @@ sqlite3 ./db.sqlite "select traces.id, time, tid, type, depth, modules.value, fu
 #include <sqlite3.h>
 #include "record.pb-c.h"
 
+#define assert(expression)  \
+  ((void) ((expression) ? 0 : __assert (expression, __FILE__, __LINE__)))
+
+#define __assert(expression, file, lineno)  \
+  (printf ("%s:%u: failed assertion\n", file, lineno),	\
+   abort (), 0)
+
 #define SQLITE_ASSERT(x) assert(SQLITE_OK == (x));
 #define SQLITE_DONE_OR_CONSTRAINT(x) assert(SQLITE_DONE == (x) || SQLITE_CONSTRAINT == (x));
 #define SQLITE_EXEC(query) SQLITE_ASSERT(sqlite3_exec(db, (query), NULL, NULL, NULL));
