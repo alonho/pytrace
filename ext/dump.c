@@ -42,6 +42,7 @@ void print_record(Record *rec) {
 }
 
 int print_records = 0;
+int should_stop = 0;
 void dump() {
   int size, count=0;
   Record *rec;
@@ -51,6 +52,11 @@ void dump() {
       db_commit();
       usleep(100);
       count = 0;
+      if (should_stop) {
+	db_commit();
+	should_stop = 0;
+	return;
+      }
       break;
     case -1:
       break;
@@ -76,5 +82,13 @@ int dump_thread_main() {
 
 pthread_t dump_thread;
 void dump_main_in_thread() {
+  should_stop = 0;
   pthread_create(&dump_thread, NULL, dump_thread_main, NULL);
+}
+
+void dump_stop() {
+  should_stop = 1;
+  while (1 == should_stop) {
+    usleep(10);
+  }
 }

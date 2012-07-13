@@ -29,3 +29,7 @@ Reader:
     Regexp
     Grep
 
+
+
+filter modules
+add '...' on overflown strings

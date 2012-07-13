@@ -27,25 +27,16 @@ start(PyObject *self, PyObject *args)
 {
   PyEval_SetTrace((Py_tracefunc)trace_func,
 		  (PyObject*)self);
-  start_dumper();
+  dump_main_in_thread();
   return Py_BuildValue("");
 }
 
 static PyObject *
 stop(PyObject *self, PyObject *args_unused)
 {
+  dump_stop();
   PyEval_SetTrace(NULL, NULL);
   return Py_BuildValue("");
-}
-
-void
-start_dumper() {
-  dump_main_in_thread();
-}
-
-void 
-stop_dumper() {
-
 }
 
 static PyMethodDef

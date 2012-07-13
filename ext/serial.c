@@ -89,7 +89,7 @@ inline void handle_call(PyFrameObject *frame) {
     } else {
       value = PyDict_GetItem(frame->f_locals, name);
     }
-    set_string(&(arguments[i]->type), pyobj_to_cstr((PyObject*) value->ob_type));
+    set_string(&(arguments[i]->type), value->ob_type->tp_name);
     set_string(&(arguments[i]->value), pyobj_to_cstr(value));
   }
   handle_trace(frame, RECORD__RECORD_TYPE__CALL, i);
@@ -97,18 +97,18 @@ inline void handle_call(PyFrameObject *frame) {
 
 inline void handle_return(PyFrameObject *frame, PyObject *value) {
   decrement_depth();
-  set_string(&(arguments[0]->name), "return_value");
+  set_string(&(arguments[0]->name), "return value");
   if (NULL == value) {
     value = Py_None;
   }
-  set_string(&(arguments[0]->type), pyobj_to_cstr((PyObject*) value->ob_type));
+  set_string(&(arguments[0]->type), value->ob_type->tp_name);
   set_string(&(arguments[0]->value), pyobj_to_cstr(value));
   handle_trace(frame, RECORD__RECORD_TYPE__RETURN, 1);
 }
     
 inline void handle_exception(PyFrameObject *frame, PyObject *exc_info) {
   set_string(&(arguments[0]->name), "exception");
-  set_string(&(arguments[0]->type), pyobj_to_cstr(PyTuple_GET_ITEM(exc_info, 0)));
+  set_string(&(arguments[0]->type), ((PyTypeObject*) PyTuple_GET_ITEM(exc_info, 0))->tp_name);
   set_string(&(arguments[0]->value), pyobj_to_cstr(PyTuple_GET_ITEM(exc_info, 1)));
   handle_trace(frame, RECORD__RECORD_TYPE__EXCEPTION, 1);
 }

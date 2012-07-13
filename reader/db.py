@@ -9,7 +9,7 @@ def dictfetch(cur):
 
 class DB(object):
 
-    def __init__(self, path="../cpytrace/db.sqlite"):
+    def __init__(self, path="db.sqlite"):
         self._conn = sqlite3.connect(path)
         self._cur = self._conn.cursor()
         
@@ -44,5 +44,6 @@ class DB(object):
                 ' ', 
                 ('module', trace['module']),
                 ' ',
-                ('func', func_prefix + trace['func']),
+                func_prefix,
+                ('func', trace['func']),
                 '('] + args + [')']

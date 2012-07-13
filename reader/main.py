@@ -7,9 +7,16 @@ class Selectable(urwid.FlowWidget):
     def keypress(self, size, key):
         pass
             
-data = list(DB().fetch_pretty())
+data = [i for i, _ in zip(DB().fetch_pretty(), xrange(100))]
 palette = [('header', 'white', 'black'),
-           ('reveal focus', 'black', 'dark cyan', 'standout'),]
+           ('reveal focus', 'black', 'dark cyan', 'standout'),
+           ('time', '', '', '', '#9cf', ''),
+           ('tid', '', '', '', '#f99', ''),
+           ('module', '', '', '', '#9fc', ''),
+           ('func', '', '', '', '#9cf', ''),
+           ('name', '', '', '', '#9fc', ''),
+           ('type', '', '', '', '#9ff', ''),
+           ('value', '', '', '', '#f99', '')]
 content = urwid.SimpleListWalker(map(urwid.Text, data))
 listbox = urwid.ListBox(content)
 show_key = urwid.Text(u"", wrap='clip')
@@ -29,6 +36,6 @@ def exit_on_cr(input):
     elif input == 'enter':
         raise urwid.ExitMainLoop()
 
-loop = urwid.MainLoop(top, palette,
-    input_filter=show_all_input, unhandled_input=exit_on_cr)
+loop = urwid.MainLoop(top, palette, input_filter=show_all_input, unhandled_input=exit_on_cr)
+loop.screen.set_terminal_properties(colors=256)
 loop.run()

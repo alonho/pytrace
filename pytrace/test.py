@@ -38,13 +38,15 @@ class A(object):
     
 if __name__ == '__main__':
     import pytrace.tracer as tracer
+    import time
     tracer.start()
-    fib(30)
+    time.sleep(1)
+    fib(3)
     default()
     vararg(1, 2, 3)
     kwargs(a1=0, a2=1, a3=2)
     mix(100)
-    simple("a" * 3000)
+    simple("abcde" * 1000)
     simple(15)
     exceptions()
     tracer.stop()

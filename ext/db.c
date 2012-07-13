@@ -33,11 +33,11 @@ void db_init() {
   SQLITE_ASSERT(sqlite3_config(SQLITE_CONFIG_SINGLETHREAD)); 
   // WAL is a fast journal
   SQLITE_ASSERT(sqlite3_open_v2("db.sqlite", 
-			       &db, 
-			       SQLITE_OPEN_CREATE | 
-			       SQLITE_OPEN_READWRITE | 
-			       SQLITE_OPEN_WAL, 
-			       NULL));
+				&db, 
+				SQLITE_OPEN_CREATE | 
+				SQLITE_OPEN_READWRITE | 
+				SQLITE_OPEN_WAL, 
+				NULL));
 
   SQLITE_EXEC("CREATE TABLE IF NOT EXISTS  modules (           \
         id INTEGER NOT NULL,				       \
