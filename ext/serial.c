@@ -81,14 +81,14 @@ inline void handle_call(PyFrameObject *frame) {
   PyObject *name, *value;
   int i;
   increment_depth();
-  for (i = 0; i < min(PyTuple_GET_SIZE(frame->f_code->co_varnames), MAX_ARGS); i++) {
+  for (i = 0; i < min(frame->f_code->co_argcount, MAX_ARGS); i++) {
     name = PyTuple_GetItem(frame->f_code->co_varnames, i);
-    set_string(&(arguments[i]->name), PyString_AsString(name));
     if (NULL == frame->f_locals) {
       value = frame->f_localsplus[i];
     } else {
       value = PyDict_GetItem(frame->f_locals, name);
     }
+    set_string(&(arguments[i]->name), PyString_AsString(name));
     set_string(&(arguments[i]->type), value->ob_type->tp_name);
     set_string(&(arguments[i]->value), pyobj_to_cstr(value));
   }

@@ -22,17 +22,22 @@ trace_func(PyObject *obj, PyFrameObject *frame, int what, PyObject *arg)
   return 0;
 }
 
-static PyObject *
+static PySetObject *module_set;
+
+static PyObject*
 start(PyObject *self, PyObject *args)
 {
-  PyEval_SetTrace((Py_tracefunc)trace_func,
-		  (PyObject*)self);
+  if (!PyArg_ParseTuple(args, "O!", &PySet_Type, &module_set)){
+    return;
+  }
+  PyEval_SetTrace((Py_tracefunc) trace_func,
+		  (PyObject*) self);
   dump_main_in_thread();
   return Py_BuildValue("");
 }
 
-static PyObject *
-stop(PyObject *self, PyObject *args_unused)
+static PyObject*
+stop(PyObject *self, PyObject *args)
 {
   dump_stop();
   PyEval_SetTrace(NULL, NULL);
