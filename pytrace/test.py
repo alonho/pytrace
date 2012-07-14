@@ -39,9 +39,9 @@ class A(object):
 if __name__ == '__main__':
     import pytrace.tracer as tracer
     import time
-    tracer.start()
-    time.sleep(1)
-    fib(3)
+    t = time.time()
+    tracer.start(['build'])
+    fib(30)
     default()
     vararg(1, 2, 3)
     kwargs(a1=0, a2=1, a3=2)
@@ -49,4 +49,5 @@ if __name__ == '__main__':
     simple("abcde" * 1000)
     simple(15)
     exceptions()
+    print time.time() - t
     tracer.stop()

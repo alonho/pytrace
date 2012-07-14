@@ -9,6 +9,10 @@
 static int
 trace_func(PyObject *obj, PyFrameObject *frame, int what, PyObject *arg)
 {
+  if (!should_trace_module(frame)) {
+      return NULL;
+  }
+
   switch (what) {
   case PyTrace_CALL:
     handle_call(frame);
@@ -19,16 +23,34 @@ trace_func(PyObject *obj, PyFrameObject *frame, int what, PyObject *arg)
   case PyTrace_EXCEPTION: // setprofile translates exceptions to calls
     handle_exception(frame, arg);
   }
-  return 0;
+  return NULL;
 }
 
-static PySetObject *module_set;
+static PyListObject *filter_modules = NULL;
+
+int should_trace_module(PyFrameObject *frame) {
+  int i;
+  char *filter, *module;;
+
+  if (NULL == filter_modules) {
+    return 1;
+  }
+
+  module = PyString_AsString(frame->f_code->co_filename);
+  for (i = 0; i < PyList_Size(filter_modules); i++) {
+    filter = PyString_AsString(PyList_GetItem(filter_modules, i));
+    return strncmp(module, filter, strlen(filter)) == 0;
+  }
+}
 
 static PyObject*
 start(PyObject *self, PyObject *args)
 {
-  if (!PyArg_ParseTuple(args, "O!", &PySet_Type, &module_set)){
+  if (!PyArg_ParseTuple(args, "|O!", &PyList_Type, &filter_modules)){
     return;
+  }
+  if (NULL != filter_modules) {
+    Py_INCREF(filter_modules);
   }
   PyEval_SetTrace((Py_tracefunc) trace_func,
 		  (PyObject*) self);
