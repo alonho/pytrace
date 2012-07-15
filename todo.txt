@@ -31,7 +31,6 @@ Reader:
 
 
 
-filter modules
 support threads
 add '...' on overflown strings
 multiple processes

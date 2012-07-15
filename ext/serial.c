@@ -88,9 +88,11 @@ inline void handle_call(PyFrameObject *frame) {
     } else {
       value = PyDict_GetItem(frame->f_locals, name);
     }
-    set_string(&(arguments[i]->name), PyString_AsString(name));
-    set_string(&(arguments[i]->type), value->ob_type->tp_name);
-    set_string(&(arguments[i]->value), pyobj_to_cstr(value));
+    if (NULL != value) { // happens when exec is used
+      set_string(&(arguments[i]->name), PyString_AsString(name));
+      set_string(&(arguments[i]->type), value->ob_type->tp_name);
+      set_string(&(arguments[i]->value), pyobj_to_cstr(value));
+    } 
   }
   handle_trace(frame, RECORD__RECORD_TYPE__CALL, i);
 }

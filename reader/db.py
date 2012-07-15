@@ -18,9 +18,9 @@ class DB(object):
 
         for trace_id, traces in groupby(rows, lambda row: row["trace_id"]):
             final_trace = traces.next()
-            final_trace["args"] = {final_trace.pop('arg_name'): (final_trace.pop('arg_type'), final_trace.pop('arg_value'))}
+            final_trace["args"] = {final_trace.pop('arg_name'): (final_trace.pop('arg_type'), final_trace.pop('arg_value') or '')}
             for trace in traces:
-                final_trace["args"][trace.pop('arg_name')] = (trace.pop('arg_type') ,trace.pop('arg_value'))
+                final_trace["args"][trace.pop('arg_name')] = (trace.pop('arg_type'), trace.pop('arg_value') or '')
             yield final_trace
 
     def fetch_pretty(self):

@@ -7,7 +7,7 @@ class Selectable(urwid.FlowWidget):
     def keypress(self, size, key):
         pass
             
-data = [i for i, _ in zip(DB().fetch_pretty(), xrange(100))]
+data = [i for i, _ in zip(DB().fetch_pretty(), xrange(1000))]
 palette = [('header', 'white', 'black'),
            ('reveal focus', 'black', 'dark cyan', 'standout'),
            ('time', '', '', '', '#9cf', ''),

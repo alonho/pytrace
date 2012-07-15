@@ -30,7 +30,7 @@ void db_commit() {
 
 void db_init() {
   // config is effective only before open, avoid mutexes for performance
-  SQLITE_ASSERT(sqlite3_config(SQLITE_CONFIG_SINGLETHREAD)); 
+  sqlite3_config(SQLITE_CONFIG_SINGLETHREAD); 
   // WAL is a fast journal
   SQLITE_ASSERT(sqlite3_open_v2("db.sqlite", 
 				&db, 
