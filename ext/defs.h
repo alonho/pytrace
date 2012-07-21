@@ -11,4 +11,7 @@
 #define RING_ADDRESS (void*) 0x40000000000
 #define COMMIT_INTERVAL 5000
 
+#define TRUE 1
+#define FALSE 0
+
 #endif

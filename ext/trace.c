@@ -3,6 +3,7 @@
 #include "frameobject.h"
 #include "serial.h"
 #include "dump.h"
+#include "defs.h"
 
 #define MODULE_DOC PyDoc_STR("C extension for fast function tracing.")
 
@@ -30,17 +31,19 @@ static PyListObject *filter_modules = NULL;
 
 int should_trace_module(PyFrameObject *frame) {
   int i;
-  char *filter, *module;;
+  char *filter, *module;
 
   if (NULL == filter_modules) {
-    return 1;
+    return TRUE;
   }
-
   module = PyString_AsString(frame->f_code->co_filename);
   for (i = 0; i < PyList_Size(filter_modules); i++) {
     filter = PyString_AsString(PyList_GetItem(filter_modules, i));
-    return strncmp(module, filter, strlen(filter)) == 0;
+    if (0 == strncmp(module, filter, strlen(filter))) {
+      return TRUE;
+    };
   }
+  return FALSE;
 }
 
 static PyObject*
