@@ -9,12 +9,15 @@ def start(filter_modules=None):
     tracer.set_filter_modules(filter_modules)
     tracer.start_dumper()
     tracer.install() 
-    #threading.settrace(tracer.trace_func)
+    threading.settrace(thread_trace)
 
+def thread_trace(*_):
+    tracer.install()
+    
 def stop():
     tracer.uninstall()
     tracer.stop_dumper()
-    #threading.settrace(None)
+    threading.settrace(None)
 
 @contextmanager
 def trace_context(*a, **k):

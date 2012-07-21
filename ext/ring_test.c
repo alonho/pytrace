@@ -73,4 +73,5 @@ void test_ring() {
 int main() {
   test_raw();
   test_ring();
+  return 0;
 }

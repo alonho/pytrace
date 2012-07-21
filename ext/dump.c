@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <signal.h>
+#include "db.h"
 #include "defs.h"
 #include "ring.h"
 #include "shared_ring.h"
 #include "record.pb-c.h"
+#include "dump.h"
 
 Ring *ring;
 RingReader *reader;

@@ -10,21 +10,21 @@ static Argument **arguments; // pre-allocate maximum number of arguments
 static unsigned char *record_buf;
 static pthread_key_t depth_key;
 
-int init_serialize(void) {
-  if (0 != pthread_key_create(&depth_key, NULL)) {
-    return -1;
-  }
+void init_serialize(void) {
+  ASSERT(0 == pthread_key_create(&depth_key, NULL));
   record_buf = malloc(MAX_RECORD_SIZE);
-  record = malloc(sizeof(Record)); // TODO: check malloc retval
+  record = malloc(sizeof(Record));
+  ASSERT(NULL != record);
   record__init(record);
-  arguments = malloc(sizeof(Argument*) * MAX_ARGS); // TODO: check malloc retval
+  arguments = malloc(sizeof(Argument*) * MAX_ARGS);
+  ASSERT(NULL != arguments);
   record->arguments = arguments;
   int i;
   for (i = 0; i < MAX_ARGS; i++) {
     arguments[i] = malloc(sizeof(Argument));
     argument__init(arguments[i]);
   }
-  return init_writer();
+  init_writer();
 }
 
 inline char *pyobj_to_cstr(PyObject *obj) {
@@ -33,10 +33,6 @@ inline char *pyobj_to_cstr(PyObject *obj) {
     return "STR FAILED";
   }
   return PyString_AsString(string);
-}
-
-inline static int min(int x, int y) {
-  return (x < y) ? x : y;
 }
 
 inline static double floattime(void)
@@ -52,7 +48,8 @@ void set_string(ProtobufCBinaryData *bin_data, char *str) {
 }
 
 inline static int get_depth(void) {
-  return (int) (long) pthread_getspecific(depth_key); // if called before inc/dec will return NULL -> 0
+  // if called before inc/dec will return NULL -> 0
+  return (int) (long) pthread_getspecific(depth_key); 
 }
 
 inline static void increment_depth(void) {

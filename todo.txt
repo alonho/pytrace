@@ -30,8 +30,9 @@ Reader:
     Grep
 
 
-
-support threads
 add '...' on overflown strings
 multiple processes
 recognize traces lost
+
+threads
+module filter

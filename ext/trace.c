@@ -87,8 +87,8 @@ static PyMethodDef
 methods[] = {
   {"start_dumper", (PyCFunction) start_dumper, METH_VARARGS, PyDoc_STR("Start the dumper")},
   {"stop_dumper", (PyCFunction) stop_dumper, METH_VARARGS, PyDoc_STR("Stop the dumper")},
-  {"install", (PyCFunction) install, METH_VARARGS, PyDoc_STR("The trace function")},
-  {"uninstall", (PyCFunction) uninstall, METH_VARARGS, PyDoc_STR("The trace function")},
+  {"install", (PyCFunction) install, METH_VARARGS, PyDoc_STR("Install the trace function")},
+  {"uninstall", (PyCFunction) uninstall, METH_VARARGS, PyDoc_STR("Uninstall the trace function")},
   {"set_filter_modules", (PyCFunction) set_filter_modules, METH_VARARGS, PyDoc_STR("Set the package names to trace")},
   {NULL}
 };

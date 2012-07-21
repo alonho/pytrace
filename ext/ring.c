@@ -22,10 +22,10 @@ read procedure:
   4. current++.
 */
 
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include "ring.h"
+#include "defs.h"
 
 static void ring_init(Ring *ring, unsigned char *buf, unsigned int size) {
   ring->buf = buf;
@@ -57,7 +57,7 @@ void ring_free(Ring *ring) {
 }
 
 static void ring_raw_read(Ring *ring, unsigned char *buf, unsigned long read_index, unsigned int size) {
-  assert(size <= ring->size);
+  ASSERT(size <= ring->size);
   int real_index = read_index % ring->size;
   int overflow = real_index + size - ring->size;
   if (overflow <= 0) {
@@ -69,7 +69,7 @@ static void ring_raw_read(Ring *ring, unsigned char *buf, unsigned long read_ind
 }
 
 static void ring_raw_write(Ring *ring, unsigned long write_index, unsigned char *buf, unsigned int size) {
-  assert(size <= ring->size);
+  ASSERT(size <= ring->size);
   int real_index = write_index % ring->size;
   int overflow = real_index + size - ring->size;
   if (overflow <= 0) {
@@ -81,7 +81,7 @@ static void ring_raw_write(Ring *ring, unsigned long write_index, unsigned char 
 }
 
 static inline void ring_clear(Ring *ring, long size) {
-  assert(size < ring->size);
+  ASSERT(size < ring->size);
   size -= ring->size - (ring->write_index - ring->read_index);
   long read = ring->read_index;
   unsigned int record_size;

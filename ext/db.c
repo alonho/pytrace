@@ -3,16 +3,11 @@ sqlite3 ./db.sqlite "select traces.id, time, tid, type, depth, modules.value, fu
  */
 #include <sqlite3.h>
 #include "record.pb-c.h"
+#include "defs.h"
+#include "db.h"
 
-#define assert(expression)  \
-  ((void) ((expression) ? 0 : __assert (expression, __FILE__, __LINE__)))
-
-#define __assert(expression, file, lineno)  \
-  (printf ("%s:%u: failed assertion\n", file, lineno),	\
-   abort (), 0)
-
-#define SQLITE_ASSERT(x) assert(SQLITE_OK == (x));
-#define SQLITE_DONE_OR_CONSTRAINT(x) assert(SQLITE_DONE == (x) || SQLITE_CONSTRAINT == (x));
+#define SQLITE_ASSERT(x) ASSERT(SQLITE_OK == (x));
+#define SQLITE_DONE_OR_CONSTRAINT(x) ASSERT(SQLITE_DONE == (x) || SQLITE_CONSTRAINT == (x));
 #define SQLITE_EXEC(query) SQLITE_ASSERT(sqlite3_exec(db, (query), NULL, NULL, NULL));
 #define SQLITE_PREPARE(query, stmt) SQLITE_ASSERT(sqlite3_prepare_v2(db, (query), -1, (stmt), NULL));
 
@@ -168,7 +163,7 @@ static int handle_trace(Record__RecordType type, double time, int depth ,long ti
   SQLITE_ASSERT(sqlite3_bind_int(stmt_traces_insert, 4, tid));
   SQLITE_ASSERT(sqlite3_bind_int(stmt_traces_insert, 5, func_id));
   sqlite_status = sqlite3_step(stmt_traces_insert);
-  assert(sqlite_status == SQLITE_DONE);
+  ASSERT(sqlite_status == SQLITE_DONE);
   return sqlite3_last_insert_rowid(db);
 }
 
@@ -210,7 +205,7 @@ static void handle_trace_argument(int trace_id, Argument *arg) {
   SQLITE_ASSERT(sqlite3_bind_int(stmt_assoc_insert, 1, trace_id));
   SQLITE_ASSERT(sqlite3_bind_int(stmt_assoc_insert, 2, handle_argument(arg)));
   sqlite_status = sqlite3_step(stmt_assoc_insert);
-  assert(sqlite_status == SQLITE_DONE);
+  ASSERT(sqlite_status == SQLITE_DONE);
 }
 
 int db_handle_record(Record *rec) {
@@ -220,4 +215,5 @@ int db_handle_record(Record *rec) {
   for (i=0; i < rec->n_arguments; i++) {
     handle_trace_argument(trace_id, rec->arguments[i]);
   }
+  return trace_id;
 }
