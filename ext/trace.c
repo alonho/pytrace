@@ -11,7 +11,7 @@ static int
 trace_func(PyObject *obj, PyFrameObject *frame, int what, PyObject *arg)
 {
   if (!should_trace_module(frame)) {
-      return NULL;
+    return NULL;
   }
 
   switch (what) {
@@ -47,32 +47,49 @@ int should_trace_module(PyFrameObject *frame) {
 }
 
 static PyObject*
-start(PyObject *self, PyObject *args)
-{
+set_filter_modules(PyObject *self, PyObject *args) {
+  if (NULL != filter_modules) {
+    Py_DECREF(filter_modules);
+  }
   if (!PyArg_ParseTuple(args, "|O!", &PyList_Type, &filter_modules)){
     return;
   }
   if (NULL != filter_modules) {
     Py_INCREF(filter_modules);
   }
-  PyEval_SetTrace((Py_tracefunc) trace_func,
-		  (PyObject*) self);
-  dump_main_in_thread();
   return Py_BuildValue("");
 }
 
 static PyObject*
-stop(PyObject *self, PyObject *args)
-{
+install(PyObject *self, PyObject *args) {
+  PyEval_SetTrace((Py_tracefunc) trace_func, (PyObject*) self);
+  return Py_BuildValue("");
+}
+
+static PyObject*
+start_dumper(PyObject *self, PyObject *args) {
+  dump_main_in_thread();
+}
+
+static PyObject*
+stop_dumper(PyObject *self, PyObject *args) {
   dump_stop();
+}
+
+static PyObject*
+uninstall(PyObject *self, PyObject *args)
+{
   PyEval_SetTrace(NULL, NULL);
   return Py_BuildValue("");
 }
 
 static PyMethodDef
 methods[] = {
-  {"start", (PyCFunction) start, METH_VARARGS, PyDoc_STR("Start the tracer")},
-  {"stop", (PyCFunction) stop, METH_VARARGS, PyDoc_STR("Stop the tracer")},
+  {"start_dumper", (PyCFunction) start_dumper, METH_VARARGS, PyDoc_STR("Start the dumper")},
+  {"stop_dumper", (PyCFunction) stop_dumper, METH_VARARGS, PyDoc_STR("Stop the dumper")},
+  {"install", (PyCFunction) install, METH_VARARGS, PyDoc_STR("The trace function")},
+  {"uninstall", (PyCFunction) uninstall, METH_VARARGS, PyDoc_STR("The trace function")},
+  {"set_filter_modules", (PyCFunction) set_filter_modules, METH_VARARGS, PyDoc_STR("Set the package names to trace")},
   {NULL}
 };
 

@@ -37,18 +37,17 @@ class A(object):
         return self
     
 if __name__ == '__main__':
-    import pytrace.tracer as tracer
+    import pytrace
     import time
     t = time.time()
-    tracer.start(['build'])
-    fib(3)
-    default()
-    vararg(1, 2, 3)
-    kwargs(a1=0, a2=1, a3=2)
-    mix(100)
-    simple("abcde" * 1000)
-    simple(u'\x01\x1b[0;34m\x02In [{color.number}{count}{color.prompt}]: \x01\x1b[0m\x02')
-    simple("")
-    exceptions()
-    print time.time() - t
-    tracer.stop()
+    with pytrace.trace_context(filter_modules=['build']):
+        fib(30)
+        default()
+        vararg(1, 2, 3)
+        kwargs(a1=0, a2=1, a3=2)
+        mix(100)
+        simple("abcde" * 1000)
+        simple(u'\x01\x1b[0;34m\x02In [{color.number}{count}{color.prompt}]: \x01\x1b[0m\x02')
+        simple("")
+        exceptions()
+        print time.time() - t

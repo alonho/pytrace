@@ -6,8 +6,11 @@ class Selectable(urwid.FlowWidget):
         return True
     def keypress(self, size, key):
         pass
-            
-data = [i for i, _ in zip(DB().fetch_pretty(), xrange(1000))]
+
+def get_data():
+    return list(DB().fetch_pretty())
+    
+data = get_data()
 palette = [('header', 'white', 'black'),
            ('reveal focus', 'black', 'dark cyan', 'standout'),
            ('time', '', '', '', '#9cf', ''),
@@ -33,6 +36,12 @@ def exit_on_cr(input):
         content.set_focus(len(data) - 1)
     elif input == "p":
         content.set_focus(0)
+    elif input == "T":
+        new_data = get_data()
+        if len(new_data) != len(data):
+            for i in new_data[-(len(new_data)-len(data)):]:
+                content.append(urwid.Text([i]))
+            content.set_focus(len(new_data) - 1)
     elif input == 'enter':
         raise urwid.ExitMainLoop()
 
