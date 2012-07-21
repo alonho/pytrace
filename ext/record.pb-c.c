@@ -156,21 +156,23 @@ const ProtobufCMessageDescriptor argument__descriptor =
   (ProtobufCMessageInit) argument__init,
   NULL,NULL,NULL    /* reserved[123] */
 };
-const ProtobufCEnumValue record__record_type__enum_values_by_number[4] =
+const ProtobufCEnumValue record__record_type__enum_values_by_number[5] =
 {
   { "CALL", "RECORD__RECORD_TYPE__CALL", 0 },
   { "RETURN", "RECORD__RECORD_TYPE__RETURN", 1 },
   { "EXCEPTION", "RECORD__RECORD_TYPE__EXCEPTION", 2 },
   { "LOG", "RECORD__RECORD_TYPE__LOG", 3 },
+  { "OVERFLOW", "RECORD__RECORD_TYPE__OVERFLOW", 4 },
 };
 static const ProtobufCIntRange record__record_type__value_ranges[] = {
-{0, 0},{0, 4}
+{0, 0},{0, 5}
 };
-const ProtobufCEnumValueIndex record__record_type__enum_values_by_name[4] =
+const ProtobufCEnumValueIndex record__record_type__enum_values_by_name[5] =
 {
   { "CALL", 0 },
   { "EXCEPTION", 2 },
   { "LOG", 3 },
+  { "OVERFLOW", 4 },
   { "RETURN", 1 },
 };
 const ProtobufCEnumDescriptor record__record_type__descriptor =
@@ -180,9 +182,9 @@ const ProtobufCEnumDescriptor record__record_type__descriptor =
   "RecordType",
   "Record__RecordType",
   "",
-  4,
+  5,
   record__record_type__enum_values_by_number,
-  4,
+  5,
   record__record_type__enum_values_by_name,
   1,
   record__record_type__value_ranges,

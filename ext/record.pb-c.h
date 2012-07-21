@@ -18,7 +18,8 @@ typedef enum _Record__RecordType {
   RECORD__RECORD_TYPE__CALL = 0,
   RECORD__RECORD_TYPE__RETURN = 1,
   RECORD__RECORD_TYPE__EXCEPTION = 2,
-  RECORD__RECORD_TYPE__LOG = 3
+  RECORD__RECORD_TYPE__LOG = 3,
+  RECORD__RECORD_TYPE__OVERFLOW = 4
 } Record__RecordType;
 
 /* --- messages --- */

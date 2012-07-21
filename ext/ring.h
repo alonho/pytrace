@@ -22,6 +22,7 @@ typedef struct {
 RingReader *reader_malloc(Ring *ring);
 
 void reader_free(RingReader *reader);
+#define READ_OVERFLOW -1
 int reader_read(RingReader *reader, unsigned char *buf);
 
 #endif // RING_H

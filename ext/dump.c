@@ -46,7 +46,7 @@ void print_record(Record *rec) {
 int print_records = 0;
 int should_stop = 0;
 void dump() {
-  int size, count=0;
+  int size, count=0, last_was_overflow=FALSE;
   Record *rec;
   while (1) {
     switch (size = reader_read(reader, buf)) {
@@ -60,10 +60,15 @@ void dump() {
 	return;
       }
       break;
-    case -1:
+    case READ_OVERFLOW:
+      if (FALSE == last_was_overflow) {
+	db_handle_lost();
+	last_was_overflow = TRUE;
+      }
       break;
     default:
       count++;
+      last_was_overflow = FALSE;
       rec = record__unpack(NULL, size, buf);
       if (print_records) {
 	print_record(rec);

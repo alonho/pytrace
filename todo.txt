@@ -30,8 +30,10 @@ Reader:
     Grep
 
 
-add '...' on overflown strings
+logging
 multiple processes
+add '...' on overflown strings
+
 recognize traces lost
 
 threads

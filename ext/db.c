@@ -86,7 +86,6 @@ void db_init() {
         tid INTEGER,					 \
         func_id INTEGER,				 \
         PRIMARY KEY (id),				 \
-        CHECK (type IN ('call', 'return', 'exception')), \
         FOREIGN KEY(func_id) REFERENCES funcs (id))");
 
   //SQLITE_EXEC("CREATE INDEX IF NOT EXISTS ix_traces_time ON traces (time)");
@@ -153,7 +152,7 @@ static int handle_function(int module_id, int lineno, ProtobufCBinaryData *funct
   }
 }
 
-static char *types[] = {"call", "return", "exception"};
+static char *types[] = {"call", "return", "exception", "log", "overflow"};
 static int handle_trace(Record__RecordType type, double time, int depth ,long tid, int func_id) {
   int sqlite_status;
   sqlite3_reset(stmt_traces_insert);
@@ -216,4 +215,8 @@ int db_handle_record(Record *rec) {
     handle_trace_argument(trace_id, rec->arguments[i]);
   }
   return trace_id;
+}
+
+int db_handle_lost() {
+  return handle_trace(RECORD__RECORD_TYPE__OVERFLOW, floattime(), 0, 0, 0);
 }

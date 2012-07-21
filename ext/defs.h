@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
 #define MAX_ARGS 32
 #define MAX_STR_SIZE 1024
@@ -25,6 +26,13 @@
 
 inline static int min(int x, int y) {
   return (x < y) ? x : y;
+}
+
+inline static double floattime(void)
+{
+  struct timeval t;
+  gettimeofday(&t, NULL);
+  return (double) t.tv_sec + t.tv_usec * 0.000001;
 }
 
 #endif

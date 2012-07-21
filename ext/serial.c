@@ -35,13 +35,6 @@ inline char *pyobj_to_cstr(PyObject *obj) {
   return PyString_AsString(string);
 }
 
-inline static double floattime(void)
-{
-  struct timeval t;
-  gettimeofday(&t, NULL);
-  return (double) t.tv_sec + t.tv_usec * 0.000001;
-}
-
 void set_string(ProtobufCBinaryData *bin_data, char *str) {
   bin_data->data = (unsigned char*) str;
   bin_data->len = min(strlen(str), MAX_STR_SIZE);
