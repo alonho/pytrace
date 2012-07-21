@@ -1,8 +1,9 @@
 from setuptools import setup
 from distutils.core import Extension
+import platform
 
-NO_OPTIMIZATIONS = True
-extra_compile_args = ["-O0"] if NO_OPTIMIZATIONS else []
+OPTIMIZATIONS = True
+extra_compile_args = [] if OPTIMIZATIONS else ["-O0"]
 
 setup(name='pytrace',
       packages=['pytrace'],
@@ -14,7 +15,9 @@ setup(name='pytrace',
                                       "ext/dump.c",
                                       "ext/db.c",
                                       "ext/shared_ring.c",
-                                      "ext/record.pb-c.c"],
+                                      "ext/record.pb-c.c",
+                                      ],
+                             library_dirs=["libs"],
                              libraries=["protobuf-c",
                                         "sqlite3"],
                              extra_compile_args=extra_compile_args)])

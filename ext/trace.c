@@ -7,6 +7,25 @@
 
 #define MODULE_DOC PyDoc_STR("C extension for fast function tracing.")
 
+static PyListObject *filter_modules = NULL;
+
+int should_trace_module(PyFrameObject *frame) {
+  int i;
+  char *filter, *module;
+
+  if (NULL == filter_modules) {
+    return TRUE;
+  }
+  module = PyString_AsString(frame->f_code->co_filename);
+  for (i = 0; i < PyList_Size(filter_modules); i++) {
+    filter = PyString_AsString(PyList_GetItem(filter_modules, i));
+    if (0 == strncmp(module, filter, strlen(filter))) {
+      return TRUE;
+    };
+  }
+  return FALSE;
+}
+
 static int
 trace_func(PyObject *obj, PyFrameObject *frame, int what, PyObject *arg)
 {
@@ -27,32 +46,13 @@ trace_func(PyObject *obj, PyFrameObject *frame, int what, PyObject *arg)
   return NULL;
 }
 
-static PyListObject *filter_modules = NULL;
-
-int should_trace_module(PyFrameObject *frame) {
-  int i;
-  char *filter, *module;
-
-  if (NULL == filter_modules) {
-    return TRUE;
-  }
-  module = PyString_AsString(frame->f_code->co_filename);
-  for (i = 0; i < PyList_Size(filter_modules); i++) {
-    filter = PyString_AsString(PyList_GetItem(filter_modules, i));
-    if (0 == strncmp(module, filter, strlen(filter))) {
-      return TRUE;
-    };
-  }
-  return FALSE;
-}
-
 static PyObject*
 set_filter_modules(PyObject *self, PyObject *args) {
   if (NULL != filter_modules) {
     Py_DECREF(filter_modules);
   }
   if (!PyArg_ParseTuple(args, "|O!", &PyList_Type, &filter_modules)){
-    return;
+    return NULL;
   }
   if (NULL != filter_modules) {
     Py_INCREF(filter_modules);
@@ -69,11 +69,13 @@ install(PyObject *self, PyObject *args) {
 static PyObject*
 start_dumper(PyObject *self, PyObject *args) {
   dump_main_in_thread();
+  return Py_BuildValue("");
 }
 
 static PyObject*
 stop_dumper(PyObject *self, PyObject *args) {
   dump_stop();
+  return Py_BuildValue("");
 }
 
 static PyObject*
