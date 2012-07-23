@@ -39,6 +39,7 @@ class A(object):
 if __name__ == '__main__':
     import pytrace
     import time
+
     t = time.time()
     with pytrace.trace_context(filter_modules=['build']):
         fib(30)

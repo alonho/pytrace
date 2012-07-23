@@ -1,7 +1,6 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, exc
-from sqlalchemy import (Table, Column, Integer,
-                        DateTime, String, Enum,
+from sqlalchemy import (Table, Column, Integer, String, Enum,
                         UniqueConstraint, ForeignKey)
 
 class Base(object):

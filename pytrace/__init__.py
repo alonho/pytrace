@@ -1,8 +1,13 @@
-from contextlib import contextmanager
+import os
 import threading
-import tracer
+from . import tracer
+from .context_utils import reentrentcontext
 
-def start(filter_modules=None):
+DEFAULT_MODULES = os.getenv('TRACE_MODULES')
+if DEFAULT_MODULES is not None:
+    DEFAULT_MODULES = DEFAULT_MODULES.split(':')
+
+def start(filter_modules=DEFAULT_MODULES):
     if filter_modules is not None:
         tracer.set_filter_modules(filter_modules)
     tracer.start_dumper()
@@ -17,7 +22,7 @@ def stop():
     tracer.stop_dumper()
     threading.settrace(None)
 
-@contextmanager
+@reentrentcontext
 def trace_context(*a, **k):
     start(*a, **k)
     try:
