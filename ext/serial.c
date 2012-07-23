@@ -28,14 +28,14 @@ void init_serialize(void) {
 }
 
 inline char *pyobj_to_cstr(PyObject *obj) {
-  PyObject *string = PyObject_Str(obj);
+  PyObject *string = PyObject_Repr(obj);
   if (NULL == string) {
     return "STR FAILED";
   }
   return PyString_AsString(string);
 }
 
-void set_string(ProtobufCBinaryData *bin_data, char *str) {
+void set_string(ProtobufCBinaryData *bin_data, const char *str) {
   bin_data->data = (unsigned char*) str;
   bin_data->len = min(strlen(str), MAX_STR_SIZE);
 }

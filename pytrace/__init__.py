@@ -2,10 +2,7 @@ from contextlib import contextmanager
 import threading
 import tracer
 
-global_filter_modules = None
 def start(filter_modules=None):
-    global global_filter_modules
-    global_filter_modules = filter_modules
     if filter_modules is not None:
         tracer.set_filter_modules(filter_modules)
     tracer.start_dumper()

@@ -14,16 +14,16 @@ sqlite3 ./db.sqlite "select traces.id, time, tid, type, depth, modules.value, fu
 sqlite3 *db;
 sqlite3_stmt *stmt_modules_insert, *stmt_modules_select, *stmt_funcs_insert, *stmt_funcs_select, *stmt_types_insert, *stmt_types_select, *stmt_arg_names_insert, *stmt_arg_names_select, *stmt_arg_values_insert, *stmt_arg_values_select, *stmt_args_insert, *stmt_args_select, *stmt_traces_insert, *stmt_assoc_insert;
 
-void db_begin() {
+void db_begin(void) {
   SQLITE_EXEC("BEGIN");
 }
 
-void db_commit() {
+void db_commit(void) {
   SQLITE_EXEC("COMMIT");
   db_begin();
 }
 
-void db_init() {
+void db_init(void) {
   // config is effective only before open, avoid mutexes for performance
   sqlite3_config(SQLITE_CONFIG_SINGLETHREAD); 
   // WAL is a fast journal
@@ -117,12 +117,12 @@ void db_init() {
 static int get_or_create(sqlite3_stmt *select, sqlite3_stmt *insert, ProtobufCBinaryData *sym) {
   int sqlite_status;
   sqlite3_reset(select);
-  SQLITE_ASSERT(sqlite3_bind_text(select, 1, sym->data, sym->len, SQLITE_TRANSIENT));
+  SQLITE_ASSERT(sqlite3_bind_text(select, 1, (char*) sym->data, sym->len, SQLITE_TRANSIENT));
   if (SQLITE_ROW == sqlite3_step(select)) {
     return sqlite3_column_int(select, 0);
   } else {
     sqlite3_reset(insert);
-    SQLITE_ASSERT(sqlite3_bind_text(insert, 1, sym->data, sym->len, SQLITE_TRANSIENT));
+    SQLITE_ASSERT(sqlite3_bind_text(insert, 1, (char*) sym->data, sym->len, SQLITE_TRANSIENT));
     sqlite_status = sqlite3_step(insert);
     SQLITE_DONE_OR_CONSTRAINT(sqlite_status);
     return sqlite3_last_insert_rowid(db);
@@ -138,14 +138,14 @@ static int handle_function(int module_id, int lineno, ProtobufCBinaryData *funct
   sqlite3_reset(stmt_funcs_select);
   SQLITE_ASSERT(sqlite3_bind_int(stmt_funcs_select, 1, module_id));
   SQLITE_ASSERT(sqlite3_bind_int(stmt_funcs_select, 2, lineno));
-  SQLITE_ASSERT(sqlite3_bind_text(stmt_funcs_select, 3, function->data, function->len, SQLITE_TRANSIENT));
+  SQLITE_ASSERT(sqlite3_bind_text(stmt_funcs_select, 3, (char*) function->data, function->len, SQLITE_TRANSIENT));
   if (SQLITE_ROW == sqlite3_step(stmt_funcs_select)) {
     return sqlite3_column_int(stmt_funcs_select, 0);
   } else {
     sqlite3_reset(stmt_funcs_insert);
     SQLITE_ASSERT(sqlite3_bind_int(stmt_funcs_insert, 1, module_id));
     SQLITE_ASSERT(sqlite3_bind_int(stmt_funcs_insert, 2, lineno));
-    SQLITE_ASSERT(sqlite3_bind_text(stmt_funcs_insert, 3, function->data, function->len, SQLITE_TRANSIENT));
+    SQLITE_ASSERT(sqlite3_bind_text(stmt_funcs_insert, 3, (char*) function->data, function->len, SQLITE_TRANSIENT));
     sqlite_status = sqlite3_step(stmt_funcs_insert);
     SQLITE_DONE_OR_CONSTRAINT(sqlite_status);
     return sqlite3_last_insert_rowid(db);
@@ -217,6 +217,6 @@ int db_handle_record(Record *rec) {
   return trace_id;
 }
 
-int db_handle_lost() {
-  return handle_trace(RECORD__RECORD_TYPE__OVERFLOW, floattime(), 0, 0, 0);
+int db_handle_lost(void) {
+  return handle_trace(RECORD__RECORD_TYPE__OVERFLOW, floattime(), -1, -1, -1);
 }

@@ -1,6 +1,7 @@
-#include <stdio.h>
+#include <pthread.h>
+#include <unistd.h>
 #include <stdlib.h>
-#include <signal.h>
+#include <stdio.h>
 #include "db.h"
 #include "defs.h"
 #include "ring.h"
@@ -12,18 +13,18 @@ Ring *ring;
 RingReader *reader;
 unsigned char *buf;
 
-void dump_init() {
+void dump_init(void) {
   reader = reader_malloc(ring);
   buf = malloc(MAX_RECORD_SIZE);
   db_init();
 }
 
-void dump_process_init() {
+void dump_process_init(void) {
   ring = shared_ring_init(1);
   dump_init();
 }
 
-void dump_thread_init() {
+void dump_thread_init(void) {
   ring = ring_init_from_memory((void*) RING_ADDRESS, RB_SIZE);
   dump_init();
 }
@@ -45,7 +46,8 @@ void print_record(Record *rec) {
 
 int print_records = 0;
 int should_stop = 0;
-void dump() {
+
+void dump(void) {
   int size, count=0, last_was_overflow=FALSE;
   Record *rec;
   while (1) {
@@ -82,18 +84,18 @@ void dump() {
   }
 }
 
-int dump_thread_main() {
+void dump_thread_main(void) {
   dump_thread_init();
   dump();
 }
 
 pthread_t dump_thread;
-void dump_main_in_thread() {
+void dump_main_in_thread(void) {
   should_stop = 0;
-  pthread_create(&dump_thread, NULL, dump_thread_main, NULL);
+  pthread_create(&dump_thread, NULL,  (void*) dump_thread_main, NULL);
 }
 
-void dump_stop() {
+void dump_stop(void) {
   should_stop = 1;
   while (1 == should_stop) {
     usleep(10);

@@ -17,8 +17,8 @@ int should_trace_module(PyFrameObject *frame) {
     return TRUE;
   }
   module = PyString_AsString(frame->f_code->co_filename);
-  for (i = 0; i < PyList_Size(filter_modules); i++) {
-    filter = PyString_AsString(PyList_GetItem(filter_modules, i));
+  for (i = 0; i < PyList_Size((PyObject*) filter_modules); i++) {
+    filter = PyString_AsString(PyList_GetItem((PyObject*) filter_modules, i));
     if (0 == strncmp(module, filter, strlen(filter))) {
       return TRUE;
     };
@@ -30,7 +30,7 @@ static int
 trace_func(PyObject *obj, PyFrameObject *frame, int what, PyObject *arg)
 {
   if (!should_trace_module(frame)) {
-    return NULL;
+    return 0;
   }
 
   switch (what) {
@@ -43,7 +43,7 @@ trace_func(PyObject *obj, PyFrameObject *frame, int what, PyObject *arg)
   case PyTrace_EXCEPTION: // setprofile translates exceptions to calls
     handle_exception(frame, arg);
   }
-  return NULL;
+  return 0;
 }
 
 static PyObject*
