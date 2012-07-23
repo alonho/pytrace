@@ -10,9 +10,9 @@ if DEFAULT_MODULES is not None:
 def start(filter_modules=DEFAULT_MODULES):
     if filter_modules is not None:
         tracer.set_filter_modules(filter_modules)
+    threading.settrace(thread_trace)
     tracer.start_dumper()
     tracer.install() 
-    threading.settrace(thread_trace)
 
 def thread_trace(*_):
     tracer.install()

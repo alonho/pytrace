@@ -19,7 +19,7 @@ Base = declarative_base(cls=Base)
 
 association_table = Table('association',
                           Base.metadata,
-                          Column('trace_id', Integer, ForeignKey('traces.id')),
+                          Column('trace_id', Integer, ForeignKey('traces.id'), index=True),
                           Column('arg_id', Integer, ForeignKey('args.id')))
     
 class Trace(Base):
@@ -31,10 +31,11 @@ class Trace(Base):
     depth = Column(Integer)
     tid = Column(Integer)
     func_id = Column(Integer, ForeignKey('funcs.id'))
-    func = relationship("Func", backref="traces")
+    func = relationship("Func", backref="traces", lazy='joined')
     args = relationship("Arg",
                         secondary=association_table,
-                        backref="traces")
+                        backref="traces",
+                        lazy='joined')
 
 class Arg(Base):
     __tablename__ = "args"
@@ -42,11 +43,11 @@ class Arg(Base):
     
     id = Column(Integer, primary_key=True)
     type_id = Column(Integer, ForeignKey("types.id"), nullable=False)
-    type = relationship("Type", backref="args")
+    type = relationship("Type", backref="args", lazy='joined')
     name_id = Column(Integer, ForeignKey("arg_names.id"), nullable=False)
-    name = relationship("ArgName", backref="args")
+    name = relationship("ArgName", backref="args", lazy='joined')
     value_id = Column(Integer, ForeignKey("arg_values.id"), nullable=False)
-    value = relationship("ArgValue", backref="args")
+    value = relationship("ArgValue", backref="args", lazy='joined')
 
 class ArgName(Base):
     __tablename__ = "arg_names"
@@ -78,6 +79,6 @@ class Func(Base):
     
     id = Column(Integer, primary_key=True)
     module_id = Column(Integer, ForeignKey("modules.id"), nullable=False)
-    module = relationship("Module", backref="funcs")
+    module = relationship("Module", backref="funcs", lazy='joined')
     lineno = Column(Integer)
     name = Column(String)
