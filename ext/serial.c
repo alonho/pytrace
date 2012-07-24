@@ -70,6 +70,7 @@ void handle_trace(PyFrameObject *frame, Record__RecordType record_type, int n_ar
 inline void handle_call(PyFrameObject *frame) {  
   PyObject *name, *value;
   int i;
+  int count = 0;
   increment_depth();
   for (i = 0; i < min(frame->f_code->co_argcount, MAX_ARGS); i++) {
     name = PyTuple_GetItem(frame->f_code->co_varnames, i);
@@ -82,9 +83,10 @@ inline void handle_call(PyFrameObject *frame) {
       set_string(&(arguments[i]->name), PyString_AsString(name));
       set_string(&(arguments[i]->type), value->ob_type->tp_name);
       set_string(&(arguments[i]->value), pyobj_to_cstr(value));
+      count++;
     } 
   }
-  handle_trace(frame, RECORD__RECORD_TYPE__CALL, i);
+  handle_trace(frame, RECORD__RECORD_TYPE__CALL, count);
 }
 
 inline void handle_return(PyFrameObject *frame, PyObject *value) {

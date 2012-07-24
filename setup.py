@@ -5,7 +5,7 @@ OPTIMIZATIONS = False # by default extension are compiled with O2
 extra_compile_args = [] if OPTIMIZATIONS else ["-O0"]
 
 setup(name='pytrace',
-      packages=['pytrace'],
+      packages=['pytrace', 'pytrace.reader'],
       ext_modules=[Extension("pytrace.tracer",
                              sources=["ext/trace.c",
                                       "ext/serial.c",

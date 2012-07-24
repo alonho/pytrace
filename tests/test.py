@@ -37,14 +37,10 @@ class A(object):
         return self
     
 if __name__ == '__main__':
-    import cpytrace.tracer as tracer
-    tracer.start()
-    fib(30)
-    default()
-    vararg(1, 2, 3)
-    kwargs(a1=0, a2=1, a3=2)
-    mix(100)
-    simple("a" * 3000)
-    simple(15)
-    exceptions()
-    tracer.stop()
+    import pytrace
+    import time
+
+    t = time.time()
+    with pytrace.trace_context(filter_modules=['build']):
+        fib(6)
+        print time.time() - t

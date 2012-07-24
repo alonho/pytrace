@@ -3,12 +3,6 @@ import operator
 from urwid import raw_display
 from db import DB
 
-class Selectable(urwid.FlowWidget):
-    def selectable(self):
-        return True
-    def keypress(self, size, key):
-        pass
-
 def get_data():
     return list(DB().fetch_pretty())
     
