@@ -16,6 +16,7 @@ palette = [('header', 'white', 'black'),
            ('name', '', '', '', '#9fc', ''),
            ('type', '', '', '', '#9ff', ''),
            ('value', '', '', '', '#f99', '')]
+
 content = urwid.SimpleListWalker(map(urwid.Text, data))
 listbox = urwid.ListBox(content)
 show_key = urwid.Text(u"", wrap='clip')

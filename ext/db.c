@@ -88,7 +88,7 @@ void db_init(void) {
         PRIMARY KEY (id),				 \
         FOREIGN KEY(func_id) REFERENCES funcs (id))");
 
-  //SQLITE_EXEC("CREATE INDEX IF NOT EXISTS ix_traces_time ON traces (time)");
+  SQLITE_EXEC("CREATE INDEX IF NOT EXISTS ix_traces_time ON traces (time)");
 
   SQLITE_EXEC("CREATE TABLE IF NOT EXISTS association ( \
         trace_id INTEGER,			       \
