@@ -1,5 +1,29 @@
+import time
 import urwid
 from .tables import DB
+
+def prettify(trace):
+    time_str = time.strftime("%Y/%m/%d %H:%M:%S,{:.6f}".format(trace.time - int(trace.time)),
+                             time.localtime(trace.time))
+    func_prefix = trace.depth * ' ' + ('--> ' if trace.type == 'call' else ' <-- ')
+    args = sum([[('name', arg.name.value),
+                 ' = ',
+                 ('type', arg.type.value),
+                 ': ',
+                 ('value', arg.value.value),
+                 (', ')] for arg in trace.args], [])
+    if args:
+        args.pop()
+        
+    return [('time', time_str),
+            ' ',
+            ('tid', str(trace.tid)),
+            ' ', 
+            ('module', trace.func.module.value),
+            ' ',
+            func_prefix,
+            ('func', trace.func.name),
+            '('] + args + [')']
 
 class TraceWalker(object):
 
@@ -18,7 +42,7 @@ class TraceWalker(object):
         self.length = self.db.count()
 
     def _prepare(self, trace):
-        return urwid.Text("{} {}".format(trace.id, repr(trace.time)))
+        return urwid.Text(prettify(trace))
         
     def _fill(self):
         self.cache = map(self._prepare, self.db.find(self.start_index, self.end_index))
