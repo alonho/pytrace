@@ -53,14 +53,14 @@ void dump(void) {
   while (1) {
     switch (size = reader_read(reader, buf)) {
     case 0:
-      db_commit();
-      usleep(100);
-      count = 0;
       if (should_stop) {
 	db_commit();
 	should_stop = 0;
 	return;
       }
+      db_commit();
+      usleep(100);
+      count = 0;
       break;
     case READ_OVERFLOW:
       if (FALSE == last_was_overflow) {
@@ -72,6 +72,9 @@ void dump(void) {
       count++;
       last_was_overflow = FALSE;
       rec = record__unpack(NULL, size, buf);
+      if (NULL == rec) {
+	db_handle_lost();
+      }
       if (print_records) {
 	print_record(rec);
       }
