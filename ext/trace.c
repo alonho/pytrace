@@ -85,8 +85,16 @@ uninstall(PyObject *self, PyObject *args)
   return Py_BuildValue("");
 }
 
+static PyObject*
+init(PyObject *self, PyObject *args)
+{
+  init_serialize();
+  return Py_BuildValue("");
+}
+
 static PyMethodDef
 methods[] = {
+  {"init", (PyCFunction) init, METH_VARARGS, PyDoc_STR("Init the extension by binding the shared memory")},
   {"start_dumper", (PyCFunction) start_dumper, METH_VARARGS, PyDoc_STR("Start the dumper")},
   {"stop_dumper", (PyCFunction) stop_dumper, METH_VARARGS, PyDoc_STR("Stop the dumper")},
   {"install", (PyCFunction) install, METH_VARARGS, PyDoc_STR("Install the trace function")},
@@ -98,6 +106,5 @@ methods[] = {
 void
 inittracer(void)
 {
-  init_serialize();
   Py_InitModule3("pytrace.tracer", methods, MODULE_DOC);
 }

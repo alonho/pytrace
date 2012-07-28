@@ -1,12 +1,6 @@
 import urwid
-import operator
-from urwid import raw_display
-from db import DB
-
-def get_data():
-    return list(DB().fetch_pretty())
+from .trace_walker import TraceWalker
     
-data = get_data()
 palette = [('header', 'white', 'black'),
            ('reveal focus', 'black', 'dark cyan', 'standout'),
            ('time', '', '', '', '#9cf', ''),
@@ -17,8 +11,20 @@ palette = [('header', 'white', 'black'),
            ('type', '', '', '', '#9ff', ''),
            ('value', '', '', '', '#f99', '')]
 
-content = urwid.SimpleListWalker(map(urwid.Text, data))
-listbox = urwid.ListBox(content)
+class LessLikeListBox(urwid.ListBox):
+
+    MAP = {'f': 'page down',
+           'b': 'page up'}
+    def keypress(self, size, key):
+        if key == "G":
+            content.refresh_length()
+            self.set_focus(len(content))
+        elif key == "p":
+            self.set_focus(0)
+        return super(LessLikeListBox, self).keypress(size, self.MAP.get(key, key))
+        
+content = TraceWalker()
+listbox = LessLikeListBox(content)
 show_key = urwid.Text(u"", wrap='clip')
 head = urwid.AttrMap(show_key, 'header')
 top = urwid.Frame(listbox, head)
@@ -27,33 +33,17 @@ def show_all_input(key, raw):
     show_key.set_text(u"Pressed: " + u" ".join([
         unicode(i) for i in key]))
     return key
-
-class ScreenNavigator(object):
-
-    def __init__(self, screen):
-        self._screen = screen
+    
+def unhandled_input(key):
+    if key == "q":
+        raise urwid.ExitMainLoop()
+    return key
         
-    def keypress(self, key):
-        if key == "G":
-            content.set_focus(len(data) - 1)
-        elif key == "p":
-            content.set_focus(0)
-        elif key in ("f", "b"):
-            x, y = self._screen.get_cols_rows() # max_row might be faster
-            _, index = content.get_focus()
-            add_or_sub = dict(f=operator.add, b=operator.sub)
-            content.set_focus(add_or_sub[key](index, y / 2))
-        elif key == "T":
-            new_data = get_data()
-            if len(new_data) != len(data):
-                for i in new_data[-(len(new_data)-len(data)):]:
-                    content.append(urwid.Text([i]))
-            content.set_focus(len(new_data) - 1)
-        elif key == "q":
-            raise urwid.ExitMainLoop()
-
-screen = raw_display.Screen()
-screen_nav = ScreenNavigator(screen)
+screen = urwid.raw_display.Screen()
 screen.set_terminal_properties(colors=256)
-loop = urwid.MainLoop(top, palette, screen=screen, input_filter=show_all_input, unhandled_input=screen_nav.keypress)
-loop.run()
+loop = urwid.MainLoop(top, palette, screen=screen, unhandled_input=unhandled_input)
+try:
+    loop.run()
+except:
+    import pdb, sys
+    pdb.post_mortem(sys.exc_info()[2])

@@ -1,8 +1,24 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, exc
+from sqlalchemy.orm import relationship, exc, sessionmaker
 from sqlalchemy import (Table, Column, Integer, String, Enum,
-                        UniqueConstraint, ForeignKey)
+                        UniqueConstraint, ForeignKey, create_engine)
 
+class DB(object):
+
+    ECHO = False
+    
+    def __init__(self, uri="sqlite:///db.sqlite"):
+        engine = create_engine(uri, echo=self.ECHO)
+        Base.metadata.create_all(engine)
+        self.session = sessionmaker(bind=engine, autocommit=False)()
+
+    def count(self):
+        return self.session.query(Trace).count()
+
+    def find(self, start_index, end_index):
+        # order_by(Trace.time) might be better for the UI but how will we show overflow than?
+        return self.session.query(Trace).offset(start_index).limit(end_index - start_index)
+    
 class Base(object):
 
     @classmethod

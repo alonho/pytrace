@@ -8,6 +8,7 @@ if DEFAULT_MODULES is not None:
     DEFAULT_MODULES = DEFAULT_MODULES.split(':')
 
 def start(filter_modules=DEFAULT_MODULES):
+    tracer.init()
     if filter_modules is not None:
         tracer.set_filter_modules(filter_modules)
     threading.settrace(thread_trace)

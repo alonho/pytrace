@@ -1,6 +1,4 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from .tables import Base, Func, Module, Arg, ArgValue, ArgName, Type, Trace
+from .tables import Func, Module, Arg, ArgValue, ArgName, Type, Trace, init, Session
 
 class DB(object):
 
@@ -8,9 +6,8 @@ class DB(object):
     COMMIT_INTERVAL = 100
     
     def __init__(self, uri):
-        engine = create_engine(uri, echo=self.ECHO)
-        Base.metadata.create_all(engine)
-        self.session = sessionmaker(bind=engine)()
+        init(uri)
+        self.session = Session()
         self._interval = 0
         
     @classmethod

@@ -41,6 +41,6 @@ if __name__ == '__main__':
     import time
 
     t = time.time()
-    with pytrace.trace_context(filter_modules=['build']):
-        fib(30)
+    with pytrace.trace_context():
+        fib(10)
         print time.time() - t
