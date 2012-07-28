@@ -6,10 +6,10 @@ sqlite3 ./db.sqlite "select traces.id, time, tid, type, depth, modules.value, fu
 #include "defs.h"
 #include "db.h"
 
-#define SQLITE_ASSERT(x) ASSERT(SQLITE_OK == (x));
-#define SQLITE_DONE_OR_CONSTRAINT(x) ASSERT(SQLITE_DONE == (x) || SQLITE_CONSTRAINT == (x));
-#define SQLITE_EXEC(query) SQLITE_ASSERT(sqlite3_exec(db, (query), NULL, NULL, NULL));
-#define SQLITE_PREPARE(query, stmt) SQLITE_ASSERT(sqlite3_prepare_v2(db, (query), -1, (stmt), NULL));
+#define SQLITE_ASSERT(x) ASSERT(SQLITE_OK == (x))
+#define SQLITE_DONE_OR_CONSTRAINT(x) ASSERT(SQLITE_DONE == (x) || SQLITE_CONSTRAINT == (x))
+#define SQLITE_EXEC(query) SQLITE_ASSERT(sqlite3_exec(db, (query), NULL, NULL, NULL))
+#define SQLITE_PREPARE(query, stmt) SQLITE_ASSERT(sqlite3_prepare_v2(db, (query), -1, (stmt), NULL))
 
 sqlite3 *db;
 sqlite3_stmt *stmt_modules_insert, *stmt_modules_select, *stmt_funcs_insert, *stmt_funcs_select, *stmt_types_insert, *stmt_types_select, *stmt_arg_names_insert, *stmt_arg_names_select, *stmt_arg_values_insert, *stmt_arg_values_select, *stmt_args_insert, *stmt_args_select, *stmt_traces_insert, *stmt_assoc_insert;
@@ -18,9 +18,19 @@ void db_begin(void) {
   SQLITE_EXEC("BEGIN");
 }
 
+#define COMMIT_RETRIES 10
 void db_commit(void) {
-  SQLITE_EXEC("COMMIT");
-  db_begin();
+  int i, status;
+  for (i = 0; i < COMMIT_RETRIES; i++) {
+    status = sqlite3_exec(db, "COMMIT", NULL, NULL, NULL);
+    if (SQLITE_BUSY == status) {
+      continue;
+    } else {
+      SQLITE_ASSERT(status);
+      db_begin();
+      return;
+    }
+  }
 }
 
 void db_init(void) {
