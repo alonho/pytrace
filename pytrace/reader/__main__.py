@@ -1,8 +1,7 @@
 import urwid
 from .trace_walker import TraceWalker
-    
+
 palette = [('header', 'white', 'black'),
-           ('reveal focus', 'black', 'dark cyan', 'standout'),
            ('time', '', '', '', '#9cf', ''),
            ('tid', '', '', '', '#f99', ''),
            ('module', '', '', '', '#9fc', ''),
@@ -47,3 +46,4 @@ try:
 except:
     import pdb, sys
     pdb.post_mortem(sys.exc_info()[2])
+    raise

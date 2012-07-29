@@ -2,10 +2,13 @@ import time
 import urwid
 from .tables import DB
 
+def foc(x):
+    return urwid.AttrWrap(x, 'body', 'focus')
+
 def prettify(trace):
     time_str = time.strftime("%Y/%m/%d %H:%M:%S,{:.6f}".format(trace.time - int(trace.time)),
                              time.localtime(trace.time))
-    func_prefix = trace.depth * ' ' + ('--> ' if trace.type == 'call' else ' <-- ')
+    func_prefix = (trace.depth + 3) * ' ' + ('--> ' if trace.type == 'call' else ' <-- ')
     args = sum([[('name', arg.name.value),
                  ' = ',
                  ('type', arg.type.value),
@@ -14,16 +17,19 @@ def prettify(trace):
                  (', ')] for arg in trace.args], [])
     if args:
         args.pop()
-        
-    return [('time', time_str),
-            ' ',
-            ('tid', str(trace.tid)),
-            ' ', 
-            ('module', trace.func.module.value),
-            ' ',
-            func_prefix,
-            ('func', trace.func.name),
-            '('] + args + [')']
+    return urwid.Columns([('fixed', 28, urwid.Text(('time', time_str))),
+                          ('fixed', 10, urwid.Text(('tid', str(trace.tid)))),
+                          ('fixed', 24, urwid.Text(('module', trace.func.module.value), wrap='clip', align='right')),
+                          urwid.Text([func_prefix, ('func', trace.func.name), '('] + args + [')'], wrap='clip')],
+                         dividechars=1)
+
+class ItemWidget (urwid.WidgetWrap):
+
+    def selectable (self):
+        return True
+
+    def keypress(self, size, key):
+        return key
 
 class TraceWalker(object):
 
@@ -44,7 +50,7 @@ class TraceWalker(object):
     def _prepare(self, trace):
         if trace.type == 'overflow':
             return urwid.Text('TRACES LOST - CONSIDER EXCLUDING HOT FUNCTIONS')
-        return urwid.Text(prettify(trace))
+        return prettify(trace)
         
     def _fill(self):
         self.cache = map(self._prepare, self.db.find(self.start_index, self.end_index))
