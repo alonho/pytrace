@@ -25,7 +25,7 @@ void dump_process_init(void) {
 }
 
 void dump_thread_init(void) {
-  ring = ring_init_from_memory((void*) RING_ADDRESS, RB_SIZE);
+  ring = ring_from_memory((void*) RING_ADDRESS, RB_SIZE);
   dump_init();
 }
 
@@ -72,9 +72,7 @@ void dump(void) {
       count++;
       last_was_overflow = FALSE;
       rec = record__unpack(NULL, size, buf);
-      if (NULL == rec) {
-	db_handle_lost();
-      }
+      assert(NULL != rec);
       if (print_records) {
 	print_record(rec);
       }

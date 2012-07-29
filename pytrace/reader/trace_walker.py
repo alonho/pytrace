@@ -42,6 +42,8 @@ class TraceWalker(object):
         self.length = self.db.count()
 
     def _prepare(self, trace):
+        if trace.type == 'overflow':
+            return urwid.Text('TRACES LOST - CONSIDER EXCLUDING HOT FUNCTIONS')
         return urwid.Text(prettify(trace))
         
     def _fill(self):
