@@ -17,6 +17,7 @@ setup(name='pytrace',
                                       "ext/record.pb-c.c",
                                       ],
                              library_dirs=["libs"],
+                             include_dirs=["include"],
                              libraries=["protobuf-c", # should be found in 'libs'
                                         "sqlite3"],
                              extra_compile_args=extra_compile_args)])
