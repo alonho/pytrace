@@ -6,6 +6,8 @@ extra_compile_args = [] if OPTIMIZATIONS else ["-O0"]
 
 setup(name='pytrace',
       packages=['pytrace', 'pytrace.reader'],
+      install_requires=['sqlalchemy',
+                        'urwid'],
       ext_modules=[Extension("pytrace.tracer",
                              sources=["ext/trace.c",
                                       "ext/serial.c",
