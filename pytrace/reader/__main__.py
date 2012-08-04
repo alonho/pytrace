@@ -10,68 +10,123 @@ palette = [('time', '', '', '', '#9cf', ''),
            ('type', '', '', '', '#9ff', ''),
            ('value', '', '', '', '#f99', '')]
     
-def search_in_range(search_range, coming_from):
-    def callback(string):
-        if string is None:
-            top.set_footer(None)
-        else:
+class SearchBox(object):
+
+    def __init__(self, listbox):
+        self._listbox = listbox
+        self._edit = LineEdit(caption=":")
+        self._index = None
+        self._string = None
+        self._direction = None
+        urwid.connect_signal(self._edit, 'done', self._search_callback)
+                             
+    def _get_current(self):
+        return self._listbox.body.focus
+
+    def _get_content(self):
+        return self._listbox.body.contents
+
+    def _set_search_range(self, start, end):
+        self._search_range_step = 1 if start < end else -1
+        self._search_range_start = start
+        self._search_range_end = end
+        
+    def search_forward(self):
+        self._edit.set_caption(self.SYMBOL_SEARCH_FORWARD)
+        self._set_search_range(self._get_current(), len(self._get_content()))
+        self._edit.edit_text = ""
+        self._direction = "forward"
+        top.set_footer(self._edit)
+        top.set_focus("footer")
+        
+    def search_backward(self):
+        self._edit.set_caption(self.SYMBOL_SEARCH_BACKWARD)
+        self._set_search_range(self._get_current(), 0)
+        self._edit.edit_text = ""
+        self._direction = "backward"
+        top.set_footer(self._edit)
+        top.set_focus("footer")
+        
+    def _search_callback(self, string):
+        self._string = string
+        self._edit.edit_text = ""
+        if string is not None:
             try:
-                for i in search_range:
-                    for widget in content[i].widget_list:
-                        if string in widget.text:
-                            listbox.set_focus(i, coming_from)
-                            top.set_footer(None)
-                            top.set_focus("body")
-                            return
+                self._index = self._search_string_in_range(string)
             except KeyboardInterrupt:
-                top.set_footer(urwid.Text("Search interrupted!"))
+                self._edit.set_caption("Interrupted!")
             else:
-                top.set_footer(urwid.Text("Pattern not found"))
+                if self._index is None:
+                    self._edit.set_caption("Pattern not found")
+                else:
+                    self._edit.set_caption(":")
+                    self._listbox.set_focus(self._index, "below")
+        else:
+            self._edit.set_caption(":")
         top.set_focus("body")
-    return callback
+
+    def _search_string_in_range(self, string):
+        for i in xrange(self._search_range_start, self._search_range_end, self._search_range_step):
+            for widget in self._get_content()[i].widget_list:
+                if string in widget.text:
+                    return i
+        return None
+
+    def find_next(self):
+        if self._direction is None:
+            self._edit.set_caption("No pattern defined.")
+            return
+        if self._direction == "forward":
+            self._set_search_range(self._get_current() + 1, len(self._get_content()))
+        else:
+            assert self._direction == "backward"
+            self._set_search_range(self._get_current() - 1, 0)
+        self._search_callback(self._string)
+
+    def find_previous(self):
+        if self._direction is None:
+            self._edit.set_caption("No pattern defined.")
+            return
+        if self._direction == "forward":
+            self._set_search_range(self._get_current() - 1, 0)
+        else:
+            assert self._direction == "backward"
+            self._set_search_range(self._get_current() + 1, len(self._get_content()))
+        self._search_callback(self._string)
+        
+    SYMBOL_SEARCH_BACKWARD = "?"
+    SYMBOL_SEARCH_FORWARD = "/"
+    FUNC_MAP = {SYMBOL_SEARCH_BACKWARD: search_backward,
+                SYMBOL_SEARCH_FORWARD: search_forward,
+                'n': find_next,
+                'N': find_previous}
 
 class LessLikeListBox(urwid.ListBox):
 
     def __init__(self, *a, **k):
         super(LessLikeListBox, self).__init__(*a, **k)
-        self._completions = set([""])
-    
+        self._search_box = SearchBox(self)
+        
     def start(self):
         self.set_focus(0)
 
     def end(self):
         content.refresh_length()
-        self.set_focus(len(content))
+        self.set_focus(len(content))        
         
-    def search_front(self):
-        e = LineEdit(caption="/", completions=self._completions)
-        current = self.get_focus()[1]
-        urwid.connect_signal(e, 'done', search_in_range(search_range=xrange(current, len(content)),
-                                                        coming_from="below"))
-        top.set_footer(e)
-        top.set_focus("footer")
-
-    def search_back(self):
-        e = LineEdit(caption="?", completions=self._completions)
-        current = self.get_focus()[1]
-        urwid.connect_signal(e, 'done', search_in_range(search_range=xrange(current, 0, -1),
-                                                        coming_from="below"))
-        top.set_footer(e)
-        top.set_focus("footer")
-        
-    MAP = {'f': 'page down',
-           'b': 'page up'}
+    KEY_MAP = {'f': 'page down',
+               'b': 'page up'}
 
     FUNC_MAP = {'G': end,
                 'p': start,
-                'g': start,
-                '?': search_back,
-                '/': search_front}
-
+                'g': start}
+    
     def keypress(self, size, key):
         if key in self.FUNC_MAP:
             return self.FUNC_MAP[key](self)
-        return super(LessLikeListBox, self).keypress(size, self.MAP.get(key, key))
+        if key in self._search_box.FUNC_MAP:
+            return self._search_box.FUNC_MAP[key](self._search_box)
+        return super(LessLikeListBox, self).keypress(size, self.KEY_MAP.get(key, key))
         
 content = TraceWalker()
 listbox = LessLikeListBox(content)
