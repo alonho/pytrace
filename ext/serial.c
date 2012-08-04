@@ -8,10 +8,19 @@
 static Record *record; // pre-allocate a single record to be re-used
 static Argument **arguments; // pre-allocate maximum number of arguments
 static unsigned char *record_buf;
-static pthread_key_t depth_key;
+static pthread_key_t depth_key, no_trace_context_key;
+
+inline char *pyobj_to_cstr(PyObject *obj) {
+  PyObject *string = PyObject_Repr(obj);
+  if (NULL == string) {
+    return "STR FAILED";
+  }
+  return PyString_AsString(string);
+}
 
 void init_serialize(void) {
   ASSERT(0 == pthread_key_create(&depth_key, NULL));
+  ASSERT(0 == pthread_key_create(&no_trace_context_key, NULL));
   record_buf = malloc(MAX_RECORD_SIZE);
   record = malloc(sizeof(Record));
   ASSERT(NULL != record);
@@ -25,14 +34,6 @@ void init_serialize(void) {
     argument__init(arguments[i]);
   }
   init_writer();
-}
-
-inline char *pyobj_to_cstr(PyObject *obj) {
-  PyObject *string = PyObject_Repr(obj);
-  if (NULL == string) {
-    return "STR FAILED";
-  }
-  return PyString_AsString(string);
 }
 
 void set_string(ProtobufCBinaryData *bin_data, const char *str) {
@@ -53,6 +54,31 @@ inline static void decrement_depth(void) {
   pthread_setspecific(depth_key, (void*) (long) (get_depth() - 1));
 }
 
+#define DEPTH_MAGIC 10000
+
+inline static void enter_no_trace_context(void) {
+  pthread_setspecific(no_trace_context_key, 
+		      (void*) (int) (long) get_depth() + DEPTH_MAGIC);
+}
+
+inline static void exit_no_trace_context(void) {
+  pthread_setspecific(no_trace_context_key, NULL);
+}
+
+inline static int in_no_trace_context(void) {
+  return NULL != pthread_getspecific(no_trace_context_key);
+}
+
+inline static int should_exit_no_trace_context(void) {
+  return (get_depth() < pthread_getspecific(no_trace_context_key) - DEPTH_MAGIC);
+}
+
+int should_trace_frame(PyFrameObject *frame) {
+  return !(0 == strncmp(PyString_AsString(frame->f_code->co_name), 
+			DONT_TRACE_NAME, 
+			strlen(DONT_TRACE_NAME)));
+}
+
 void handle_trace(PyFrameObject *frame, Record__RecordType record_type, int n_arguments) 
 {
   record->type = record_type;
@@ -69,10 +95,26 @@ void handle_trace(PyFrameObject *frame, Record__RecordType record_type, int n_ar
 
 inline void handle_call(PyFrameObject *frame) {  
   PyObject *name, *value;
-  int i;
-  int count = 0;
+  int i, argcount, count = 0;
   increment_depth();
-  for (i = 0; i < min(frame->f_code->co_argcount, MAX_ARGS); i++) {
+  
+  if (in_no_trace_context()) {
+    return;
+  }
+  if (FALSE == should_trace_frame(frame)) {
+    enter_no_trace_context();
+    return;
+  }
+
+  argcount = frame->f_code->co_argcount;
+  if (frame->f_code->co_flags & CO_VARARGS) {
+    argcount++;
+  }
+  if (frame->f_code->co_flags & CO_VARKEYWORDS) {
+    argcount++;
+  }
+
+  for (i = 0; i < min(argcount, MAX_ARGS); i++) {
     name = PyTuple_GetItem(frame->f_code->co_varnames, i);
     if (NULL == frame->f_locals) {
       value = frame->f_localsplus[i];
@@ -91,6 +133,13 @@ inline void handle_call(PyFrameObject *frame) {
 
 inline void handle_return(PyFrameObject *frame, PyObject *value) {
   decrement_depth();
+  if (in_no_trace_context()) {
+    if (should_exit_no_trace_context()) {
+      exit_no_trace_context();
+    } 
+    return;
+  }
+
   set_string(&(arguments[0]->name), "return value");
   if (NULL == value) {
     value = Py_None;

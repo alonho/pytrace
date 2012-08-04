@@ -10,5 +10,6 @@ void handle_trace(PyFrameObject *frame, Record__RecordType record_type, int n_ar
 void handle_call(PyFrameObject *frame);
 void handle_return(PyFrameObject *frame, PyObject *value);
 void handle_exception(PyFrameObject *frame, PyObject *exc_info);
+int should_trace_frame(PyFrameObject *frame);
 
 #endif /* serial */

@@ -9,14 +9,14 @@
 
 static PyListObject *filter_modules = NULL;
 
-int should_trace_module(PyFrameObject *frame) {
+int should_trace_module(PyObject *module_str) {
   int i;
   char *filter, *module;
-
+  
   if (NULL == filter_modules) {
     return TRUE;
   }
-  module = PyString_AsString(frame->f_code->co_filename);
+  module = PyString_AsString(module_str);
   for (i = 0; i < PyList_Size((PyObject*) filter_modules); i++) {
     filter = PyString_AsString(PyList_GetItem((PyObject*) filter_modules, i));
     if (0 == strncmp(module, filter, strlen(filter))) {
@@ -29,7 +29,7 @@ int should_trace_module(PyFrameObject *frame) {
 static int
 trace_func(PyObject *obj, PyFrameObject *frame, int what, PyObject *arg)
 {
-  if (!should_trace_module(frame)) {
+  if (!should_trace_module(frame->f_code->co_filename)) {
     return 0;
   }
 

@@ -49,7 +49,7 @@ class TraceWalker(object):
 
     def _prepare(self, trace):
         if trace.type == 'overflow':
-            return urwid.Text('TRACES LOST - CONSIDER EXCLUDING HOT FUNCTIONS')
+            return urwid.Text('Traces lost. Consider excluding hot modules or functions.')
         return prettify(trace)
         
     def _fill(self):

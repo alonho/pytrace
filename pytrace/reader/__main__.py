@@ -14,19 +14,21 @@ class LessLikeListBox(urwid.ListBox):
 
     MAP = {'f': 'page down',
            'b': 'page up'}
+    
     def keypress(self, size, key):
         if key == "G":
             content.refresh_length()
             self.set_focus(len(content))
-        elif key == "p":
+        elif key in ("p", "g"):
             self.set_focus(0)
         return super(LessLikeListBox, self).keypress(size, self.MAP.get(key, key))
-        
+
 content = TraceWalker()
 listbox = LessLikeListBox(content)
 show_key = urwid.Text(u"", wrap='clip')
 head = urwid.AttrMap(show_key, 'header')
-top = urwid.Frame(listbox, head)
+foot = urwid.Edit()
+top = urwid.Frame(listbox, head, foot)
 
 def show_all_input(key, raw):
     show_key.set_text(u"Pressed: " + u" ".join([

@@ -1,3 +1,4 @@
+from pytrace import notrace
 
 def fib(n):
     if n in (1,2):
@@ -7,8 +8,12 @@ def fib(n):
 def simple(arg):
     pass
 
-def default(arg=10):
+@notrace
+def test_no_trace():
     pass
+    
+def default(arg=10):
+    mix(10)
 
 def vararg(*a):
     pass
@@ -42,5 +47,12 @@ if __name__ == '__main__':
 
     t = time.time()
     with pytrace.trace_context():
-        fib(10)
+        simple(10)
+        vararg(10, 20)
+        kwargs(a=10, b=20)
+        exceptions()
+        A().foo()
+        fib(20)
+        mix(10, 20, 30, "bla", k="BLO")
+        vararg(1, 2, 3)
         print time.time() - t

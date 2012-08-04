@@ -1,5 +1,6 @@
 import os
 import threading
+from functools import wraps
 from . import tracer
 from .context_utils import reentrentcontext
 
@@ -30,3 +31,13 @@ def trace_context(*a, **k):
         yield
     finally:
         stop()
+
+def notrace(func):
+    """
+    This decorator returns a function pointing to a code object with a name the tracer knows
+    to skip. even though wraps copies the function's __name__, the code object still preserves it's name. (that's because code objects are immutable)
+    """
+    @wraps(func)
+    def PYTRACE_OFF(*a, **k):
+        return func(*a, **k)
+    return PYTRACE_OFF

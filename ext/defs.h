@@ -15,6 +15,8 @@
 #define RING_ADDRESS (void*) 0x40000000000
 #define COMMIT_INTERVAL 5000
 
+#define DONT_TRACE_NAME "PYTRACE_OFF"
+
 #define TRUE 1
 #define FALSE 0
 
