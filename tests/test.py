@@ -48,11 +48,15 @@ if __name__ == '__main__':
     t = time.time()
     with pytrace.trace_context():
         simple(10)
+        test_no_trace()
         vararg(10, 20)
         kwargs(a=10, b=20)
         exceptions()
         A().foo()
-        fib(20)
+        kwargs(a="DAAAAAAAAAAAAA", b=20)
+        fib(5)
         mix(10, 20, 30, "bla", k="BLO")
         vararg(1, 2, 3)
+        kwargs(a="BAAAAAAAAAAAAA", b=20)
+        fib(5)
         print time.time() - t

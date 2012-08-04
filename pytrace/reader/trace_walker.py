@@ -2,9 +2,6 @@ import time
 import urwid
 from .tables import DB
 
-def foc(x):
-    return urwid.AttrWrap(x, 'body', 'focus')
-
 def prettify(trace):
     time_str = time.strftime("%Y/%m/%d %H:%M:%S,{:.6f}".format(trace.time - int(trace.time)),
                              time.localtime(trace.time))
@@ -23,25 +20,15 @@ def prettify(trace):
                           urwid.Text([func_prefix, ('func', trace.func.name), '('] + args + [')'], wrap='clip')],
                          dividechars=1)
 
-class ItemWidget (urwid.WidgetWrap):
-
-    def selectable (self):
-        return True
-
-    def keypress(self, size, key):
-        return key
-
 class TraceWalker(object):
 
-    CACHE_SIZE = 2000 # records
+    CACHE_SIZE = 1000 # records
     
     def __init__(self):
         self.db = DB()
         self.focus = 0
-        self.start_index = 0
-        self.end_index = self.CACHE_SIZE
         self.refresh_length()
-        self._fill()
+        self._fetch(0, self.CACHE_SIZE)
         self.end_index = min(self.CACHE_SIZE, len(self))
 
     def refresh_length(self):
@@ -49,22 +36,24 @@ class TraceWalker(object):
 
     def _prepare(self, trace):
         if trace.type == 'overflow':
-            return urwid.Text('Traces lost. Consider excluding hot modules or functions.')
+            return urwid.Columns([urwid.Text('Traces lost. Consider excluding hot modules or functions.')])
         return prettify(trace)
         
-    def _fill(self):
-        self.cache = map(self._prepare, self.db.find(self.start_index, self.end_index))
+    def _fetch(self, start, end):
+        self.cache = map(self._prepare, self.db.find(start, end))
+        self.start_index = start
+        self.end_index = end
 
     def _refill(self, i):
         if i == self.end_index:
-            self.end_index = min(self.end_index + self.CACHE_SIZE / 2, self.length)
-            self.start_index = max(self.end_index - self.CACHE_SIZE, 0)
-            self.cache = self.cache[-(self.CACHE_SIZE / 2):] + map(self._prepare, self.db.find(self.start_index, self.end_index))
-            
+            end = min(self.end_index + self.CACHE_SIZE / 2, self.length)
+            start = max(end - self.CACHE_SIZE, 0)
+            self.cache = self.cache[-(self.CACHE_SIZE / 2):] + map(self._prepare, self.db.find(start, end))
+            self.start_index = start
+            self.end_index = end
         else:
-            self.start_index = max(0, i - (self.CACHE_SIZE / 2))
-            self.end_index = min(self.length, i + (self.CACHE_SIZE / 2))
-            self._fill()
+            self._fetch(max(0, i - (self.CACHE_SIZE / 2)),
+                        min(self.length, i + (self.CACHE_SIZE / 2)))
         
     def __len__(self):
         return self.length

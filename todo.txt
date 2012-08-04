@@ -29,12 +29,13 @@ Reader:
     Regexp
     Grep
 
-
 logging
 multiple processes
 add '...' on overflown strings
 
 recognize traces lost
-
 threads
 module filter
+
+
+
