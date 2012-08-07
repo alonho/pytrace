@@ -2,7 +2,8 @@ import urwid
 from .urwid_utils import LineEdit
 from .trace_walker import TraceWalker
 
-palette = [('time', '', '', '', '#9cf', ''),
+palette = [('search', '', '', '', '#f99', '#fff'),
+           ('time', '', '', '', '#9cf', ''),
            ('tid', '', '', '', '#f99', ''),
            ('module', '', '', '', '#9fc', ''),
            ('func', '', '', '', '#9cf', ''),
@@ -19,7 +20,8 @@ class SearchBox(object):
         self._string = None
         self._direction = None
         urwid.connect_signal(self._edit, 'done', self._search_callback)
-                             
+        self._get_content.set_prepare_callback(self._prepare_widget)
+        
     def _get_current(self):
         return self._listbox.body.focus
 
@@ -66,12 +68,55 @@ class SearchBox(object):
         top.set_focus("body")
 
     def _search_string_in_range(self, string):
+        content = self._get_content()
+        indices = []
         for i in xrange(self._search_range_start, self._search_range_end, self._search_range_step):
-            for widget in self._get_content()[i].widget_list:
+            widgets = content[i].widget_list
+            for index, widget in enumerate(widgets):
+                if hasattr(widget, '_orig_attrib'):
+                    widget._attrib = widget._orig_attrib
                 if string in widget.text:
-                    return i
-        return None
+                    indices.append(i)
+                    string_index = widget.text.index(string)
+                    self._handle_match(widget, string_index, string_index + len(string))
+        if indices:
+            return indices[0]
 
+    def _handle_match(self, widget, start, end):
+        attrib = []
+        count = 0
+        it = iter(widget.attrib)
+        for (attr, index) in it:
+            count += index
+            if count < start:
+                attrib.append((attr, index))
+            else:
+                init = start - (count - index)
+                middle = end - start
+                tail = index - middle - init
+                attrib.append((attr, init))
+                attrib.append(('search', middle))
+                if count > end:
+                    attrib.append((attr, tail))
+                break
+        else:
+            assert False
+            
+        for (attr, index) in it:
+            count += index
+            if count > end:
+                attrib.append((attr, min(index, count - end)))
+                break
+
+        attrib.extend(it)
+                
+        widget._orig_attrib = widget.attrib
+        widget._attrib = attrib
+
+    def _prepare_widget(self, widget):
+        if self._search_string is None:
+            return
+        
     def find_next(self):
         if self._direction is None:
             self._edit.set_caption("No pattern defined.")
@@ -86,6 +131,7 @@ class SearchBox(object):
     def find_previous(self):
         if self._direction is None:
             self._edit.set_caption("No pattern defined.")
+            self._search_string = None
             return
         if self._direction == "forward":
             self._set_search_range(self._get_current() - 1, 0)

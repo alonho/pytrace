@@ -22,7 +22,7 @@ def prettify(trace):
 
 class TraceWalker(object):
 
-    CACHE_SIZE = 1000 # records
+    CACHE_SIZE = 500 # records
     
     def __init__(self):
         self.db = DB()
@@ -30,14 +30,18 @@ class TraceWalker(object):
         self.refresh_length()
         self._fetch(0, self.CACHE_SIZE)
         self.end_index = min(self.CACHE_SIZE, len(self))
+        self.set_prepare_callback()
 
+    def set_prepare_callback(self, cb=lambda x:x):
+        self._prepare_callback = cb
+        
     def refresh_length(self):
         self.length = self.db.count()
 
     def _prepare(self, trace):
         if trace.type == 'overflow':
             return urwid.Columns([urwid.Text('Traces lost. Consider excluding hot modules or functions.')])
-        return prettify(trace)
+        return self._prepare_callback(prettify(trace))
         
     def _fetch(self, start, end):
         self.cache = map(self._prepare, self.db.find(start, end))

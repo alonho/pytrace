@@ -32,10 +32,8 @@ Reader:
 logging
 multiple processes
 add '...' on overflown strings
+search never stops
 
 recognize traces lost
 threads
 module filter
-
-
-
