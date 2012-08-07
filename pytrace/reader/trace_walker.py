@@ -59,7 +59,7 @@ class TraceWalker(object):
             if i == self.end_index:
                 end = min(self.end_index + self.CACHE_SIZE / 2, self.length)
                 start = max(end - self.CACHE_SIZE, 0)
-                self.cache = self.cache[-(self.CACHE_SIZE / 2):] + map(self._prepare, self.db.find(start, end))
+                self.cache = self.cache[-(self.CACHE_SIZE / 2):] + map(self._prepare, self.db.find(start + self.CACHE_SIZE / 2, end))
                 self.start_index = start
                 self.end_index = end
             else:
