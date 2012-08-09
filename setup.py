@@ -18,8 +18,5 @@ setup(name='pytrace',
                                       "ext/shared_ring.c",
                                       "ext/record.pb-c.c",
                                       ],
-                             library_dirs=["libs"],
-                             include_dirs=["include"],
-                             libraries=["protobuf-c", # should be found in 'libs'
-                                        "sqlite3"],
+                             libraries=["protobuf-c", "sqlite3"],
                              extra_compile_args=extra_compile_args)])

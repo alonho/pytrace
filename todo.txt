@@ -37,3 +37,7 @@ search never stops
 recognize traces lost
 threads
 module filter
+
+on ubuntu
+sudo apt-get install libsqlite3-dev libprotobuf-c0-dev
+brew install protobuf-c
