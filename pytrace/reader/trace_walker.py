@@ -2,8 +2,9 @@ import time
 import urwid
 from .tables import DB
 
+TIME_FORMAT = "%Y/%m/%d %H:%M:%S"
 def prettify(trace):
-    time_str = time.strftime("%Y/%m/%d %H:%M:%S,{:.6f}".format(trace.time - int(trace.time)),
+    time_str = time.strftime(TIME_FORMAT + ",{:.6f}".format(trace.time - int(trace.time)),
                              time.localtime(trace.time))
     func_prefix = (trace.depth + 3) * ' ' + ('--> ' if trace.type == 'call' else ' <-- ')
     args = sum([[('name', arg.name.value),

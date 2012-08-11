@@ -5,9 +5,14 @@ from pytrace.reader import query, tables
 
 class QueryTest(TestCase):
 
+    @classmethod
+    def setUpClass(cls):
+        cls.db = tables.DB()
+        cls.q = query.Parser(session=cls.db.session)
+
+class StringOperandQueryTest(QueryTest):
+
     def setUp(self):
-        self.db = tables.DB()
-        self.q = query.Parser(session=self.db.session)
         self.db.session.query(tables.Type).delete()
         self.db.session.commit()
         
@@ -33,7 +38,7 @@ class QueryTest(TestCase):
     def test_not(self):
         self.verify_types(['int', 'intro'])
         e = self.q.string_to_filter("type == 'in%' and not type == 'intro'")
-        res = list(self.db.session.query(tables.Type).filter(e))
+        res = self.db.session.query(tables.Type).filter(e).all()
         self.assertEqual(len(res), 1)
         self.assertEqual(res[0].value, 'int')
         
@@ -47,6 +52,10 @@ class QueryTest(TestCase):
         for context in [context1, context2, context3]:
             self.assertIn('type', context.exception.options)
 
+        with self.assertRaises(query.InvalidOperator) as context:
+            self.q.string_to_filter("type < 'int'")
+        self.assertIn('==', context.exception.options)
+
     def test_eq_completion(self):
         self.verify_types(['bla'])
         with self.assertRaises(query.InvalidTypeError) as context1:
@@ -56,3 +65,11 @@ class QueryTest(TestCase):
         for context in [context1, context2]:
             self.assertIn('bla', context.exception.options)
         
+class IntOperandQueryTest(QueryTest):
+
+    def test_operators(self):
+        self.assertIn('=', str(self.q.string_to_filter('tid == 1')))
+        for operator in ['<', '>', '<=', '>=']:
+            self.assertIn(operator, str(self.q.string_to_filter('tid {} 1'.format(operator))))
+    def test_time(self):
+        self.assertEqual(1344621150.0, self.q.string_to_filter('time == "2012/08/10 20:52:30"').right.value)

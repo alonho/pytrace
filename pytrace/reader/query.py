@@ -1,5 +1,8 @@
 import ast
-from .tables import *
+import time
+import operator
+from . import tables
+from .trace_walker import TIME_FORMAT
 from sqlalchemy import or_, and_, not_
 
 class ClassCollector(type):
@@ -16,76 +19,112 @@ class Operand(object):
 
     def __init__(self, session):
         self.session = session
-    def get_symbol(self):
-        raise NotImplementedError()
-    def get_column(self):
-        raise NotImplementedError()
+    def normalize(self, ast_node):
+        return ast_node
     def get_options(self, filter=None):
         col = self.get_column()
         q = self.session.query(col.class_)
         if filter is not None:
             q = q.filter(filter)
         return [getattr(i, col.key) for i in q]
+    def get_handlers_docs(self):
+        for func in dir(self):
+            if func.startswith('handle_'):
+                yield getattr(self, func).__doc__
+    get_supported_operators = get_handlers_docs
     def handle(self, operator, operand):
         operator_name = operator.__class__.__name__
         try:
             handler = getattr(self, 'handle_' + operator_name)
         except AttributeError:
-            raise ParseError("{} doesn't support {}".format(self.get_symbol(), operator_name),
-                             col_offset=thing.col_offset)
-        return handler(operand)
+            raise InvalidOperator("{} doesn't support {}".format(self.get_symbol(), operator_name),
+                                  col_offset=operand.col_offset,
+                                  options=list(self.get_supported_operators()))
+        return handler(self.normalize(operand))
         
+    def get_symbol(self):
+        raise NotImplementedError()
+    def get_column(self):
+        raise NotImplementedError()
+
 class StringOperand(Operand):
     ABSTRACT = True
+
+    def normalize(self, ast_node):
+        if not isinstance(ast_node, ast.Str):
+            raise InvalidTypeError('Expected string, got: {}'.format(ast_node.__class__.__name__),
+                                   col_offset=ast_node.col_offset,
+                                   options=self.get_options())
+        return ast_node
     
-    def handle_Eq(self, string):
+    def handle_Eq(self, string_node):
+        '''=='''
         options = self.get_options()
-        if not isinstance(string, ast.Str):
-            raise InvalidTypeError("Expected string, got: {}".format(string),
-                                   col_offset=string.col_offset,
-                                   options=options)
-        q = self.get_column().like(string.s)
+        q = self.get_column().like(string_node.s)
         if not self.get_options(filter=q):
-            raise ValueNotFoundError("Can't find {}".format(string.s),
-                                     col_offset=string.col_offset,
+            raise ValueNotFoundError("Can't find {}".format(string_node.s),
+                                     col_offset=string_node.col_offset,
                                      options=options)
         return q
+
+def create_int_handler(python_op, symbol):
+    def handler(self, num):
+        if not isinstance(num, ast.Num):
+            raise InvalidTypeError('Expected a number, got: {}'.format(num.__class__.__name__),
+                                   col_offset=num.col_offset)
+        return python_op(self.get_column(), num.n)
+    handler.__doc__ = symbol
+    return handler
     
+class IntegerOperand(Operand):
+    ABSTRACT = True
+
+    handle_Eq = create_int_handler(operator.eq, '==')
+    handle_Gt = create_int_handler(operator.gt, '>')
+    handle_Lt = create_int_handler(operator.lt, '<')
+    handle_GtE = create_int_handler(operator.ge, '>=')
+    handle_LtE = create_int_handler(operator.le, '<=')
+            
 class ArgOp(StringOperand):
     def get_symbol(self):
         return 'arg'
     def get_column(self):
-        return ArgName.value
+        return tables.ArgName.value
 
 class ValueOp(StringOperand):
     def get_symbol(self):
         return 'value'
     def get_column(self):
-        return ArgValue.value
+        return tables.ArgValue.value
 
 class TypeOp(StringOperand):
     def get_symbol(self):
         return 'type'
     def get_column(self):
-        return Type.value
+        return tables.Type.value
 
 class ModuleOp(StringOperand):
     def get_symbol(self):
         return 'module'
     def get_column(self):
-        return Module.value
+        return tables.Module.value
 
-class TidOp(Operand):
+class TidOp(IntegerOperand):
     def get_symbol(self):
         return 'tid'
     def get_column(self):
-        return Trace.tid
+        return tables.Trace.tid
         
-class TimeOp(Operand):
+class TimeOp(IntegerOperand):
+    def normalize(self, ast_node):
+        if not isinstance(ast_node, ast.Str):
+            raise InvalidTypeError('Expected string, got: {}'.format(ast_node.__class__.__name__),
+                                   col_offset=ast_node.col_offset)
+        return ast.Num(time.mktime(time.strptime(ast_node.s, TIME_FORMAT)))
     def get_symbol(self):
         return 'time'
     def get_column(self):
-        return Trace.time
+        return tables.Trace.time
 
 class ParseError(Exception):
     def __init__(self, message, col_offset, options=[]):
@@ -94,6 +133,7 @@ class ParseError(Exception):
         self.options = options
 
 class InvalidOperand(ParseError): pass
+class InvalidOperator(ParseError): pass
 class InvalidComparatorNum(ParseError): pass
 class IdentifierNotFound(ParseError): pass
 class InvalidTypeError(ParseError): pass
@@ -138,9 +178,10 @@ class Parser(object):
                                  options=self._symbol_to_op.keys())
         if len(compare.comparators) != 1:
             raise InvalidComparatorNum('Invalid number of comparators: {}', col_offset=compare.comparators[1].col_offset)
-        return self.handle(left).handle(compare.ops[0], compare.comparators[0])
+        return self._handle_Name(left).handle(compare.ops[0], compare.comparators[0])
 
-    def handle_Name(self, name):
+    # called explicitly
+    def _handle_Name(self, name):
         if name.id not in self._symbol_to_op:
             raise IdentifierNotFound('Identifier not found: {}'.format(name.id),
                                      col_offset=name.col_offset,
@@ -148,8 +189,7 @@ class Parser(object):
         return self._symbol_to_op[name.id]
             
     def handle_UnaryOp(self, op):
-        return not_(self.handle(op.operand))
+        return self.handle(op.op)(self.handle(op.operand))
 
-    def handle_Not(self, value):
-        import pdb; pdb.set_trace()
-
+    def handle_Not(self, not_node):
+        return not_
