@@ -1,23 +1,37 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship, exc, sessionmaker
-from sqlalchemy import (Table, Column, Integer, String, Enum,
+from sqlalchemy.orm import relationship, exc, sessionmaker, joinedload
+from sqlalchemy import (Table, Column, Integer, String, Enum, 
                         UniqueConstraint, ForeignKey, create_engine)
 
 class DB(object):
 
-    ECHO = False
-    
-    def __init__(self, uri="sqlite:///db.sqlite"):
-        engine = create_engine(uri, echo=self.ECHO)
+    def __init__(self, uri="sqlite:///db.sqlite", echo=False):
+        engine = create_engine(uri, echo=echo)
         Base.metadata.create_all(engine)
         self.session = sessionmaker(bind=engine, autocommit=False)()
 
     def count(self):
         return self.session.query(Trace).count()
 
-    def find(self, start_index, end_index):
+    def find(self, start_index=None, end_index=None, filter=None):
         # order_by(Trace.time) might be better for the UI but how will we show overflow than?
-        return self.session.query(Trace).offset(start_index).limit(end_index - start_index)
+        q = self.query(filter)
+        if start_index is not None:
+            q = q.offset(start_index)
+        if end_index is not None:
+            if start_index is None:
+                start_index = 0
+            q = q.limit(end_index - start_index)
+        return q
+
+    def query(self, filter=None):
+        query = self.session.query(Trace).join(association_table).join(Arg).join(ArgName).options(joinedload('args'), joinedload('args.name'))
+        if filter is not None:
+            return query.filter(filter)
+        return query
+
+    def filter(self, filter):
+        return self.query().filter(filter)
     
 class Base(object):
 
@@ -31,6 +45,9 @@ class Base(object):
             session.flush()
             return instance
 
+    def get_all(cls, session):
+        return session
+            
 Base = declarative_base(cls=Base)
 
 association_table = Table('association',
@@ -47,11 +64,10 @@ class Trace(Base):
     depth = Column(Integer)
     tid = Column(Integer)
     func_id = Column(Integer, ForeignKey('funcs.id'))
-    func = relationship("Func", backref="traces", lazy='joined')
+    func = relationship("Func", backref="traces")
     args = relationship("Arg",
                         secondary=association_table,
-                        backref="traces",
-                        lazy='joined')
+                        backref="traces")
 
 class Arg(Base):
     __tablename__ = "args"
@@ -59,11 +75,11 @@ class Arg(Base):
     
     id = Column(Integer, primary_key=True)
     type_id = Column(Integer, ForeignKey("types.id"), nullable=False)
-    type = relationship("Type", backref="args", lazy='joined')
+    type = relationship("Type", backref="args")
     name_id = Column(Integer, ForeignKey("arg_names.id"), nullable=False)
-    name = relationship("ArgName", backref="args", lazy='joined')
+    name = relationship("ArgName", backref="args")
     value_id = Column(Integer, ForeignKey("arg_values.id"), nullable=False)
-    value = relationship("ArgValue", backref="args", lazy='joined')
+    value = relationship("ArgValue", backref="args")
 
 class ArgName(Base):
     __tablename__ = "arg_names"
@@ -95,6 +111,6 @@ class Func(Base):
     
     id = Column(Integer, primary_key=True)
     module_id = Column(Integer, ForeignKey("modules.id"), nullable=False)
-    module = relationship("Module", backref="funcs", lazy='joined')
+    module = relationship("Module", backref="funcs")
     lineno = Column(Integer)
     name = Column(String)

@@ -16,7 +16,8 @@ setup(name='pytrace',
                                       "ext/dump.c",
                                       "ext/db.c",
                                       "ext/shared_ring.c",
-                                      "ext/record.pb-c.c",
-                                      ],
+                                      "ext/record.pb-c.c"],
+                             # for all you poor folks using macports
+                             include_dirs=["/opt/local/include"],
                              libraries=["protobuf-c", "sqlite3"],
                              extra_compile_args=extra_compile_args)])

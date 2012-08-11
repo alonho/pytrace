@@ -1,7 +1,7 @@
 import os
 import threading
 from functools import wraps
-from . import tracer
+#from . import tracer
 from .context_utils import reentrentcontext
 
 DEFAULT_MODULES = os.getenv('TRACE_MODULES')
