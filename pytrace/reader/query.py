@@ -62,7 +62,10 @@ class StringOperand(Operand):
         options = self.get_options()
         q = self.get_column().like(string_node.s)
         if not self.get_options(filter=q):
-            raise ValueNotFoundError("Can't find {}".format(string_node.s),
+            prefix_options = self.get_options(filter=self.get_column().like(string_node.s + '%'))
+            if prefix_options:
+                options = prefix_options
+            raise ValueNotFoundError("Invalid {}: {}".format(self.get_symbol(), string_node.s),
                                      col_offset=string_node.col_offset,
                                      options=options)
         return q
@@ -109,6 +112,12 @@ class ModuleOp(StringOperand):
     def get_column(self):
         return tables.Module.value
 
+class ModuleOp(StringOperand):
+    def get_symbol(self):
+        return 'func'
+    def get_column(self):
+        return tables.Func.name
+        
 class TidOp(IntegerOperand):
     def get_symbol(self):
         return 'tid'
@@ -120,7 +129,12 @@ class TimeOp(IntegerOperand):
         if not isinstance(ast_node, ast.Str):
             raise InvalidTypeError('Expected string, got: {}'.format(ast_node.__class__.__name__),
                                    col_offset=ast_node.col_offset)
-        return ast.Num(time.mktime(time.strptime(ast_node.s, TIME_FORMAT)))
+        try:
+            time_tuple = time.strptime(ast_node.s, TIME_FORMAT)
+        except ValueError:
+            raise InvalidValueError('Invalid time format ({})'.format(TIME_FORMAT),
+                                    col_offset=ast_node.col_offset)
+        return ast.Num(time.mktime(time_tuple))
     def get_symbol(self):
         return 'time'
     def get_column(self):
@@ -135,9 +149,10 @@ class ParseError(Exception):
 class InvalidOperand(ParseError): pass
 class InvalidOperator(ParseError): pass
 class InvalidComparatorNum(ParseError): pass
-class IdentifierNotFound(ParseError): pass
 class InvalidTypeError(ParseError): pass
+class InvalidValueError(ParseError): pass
 class ValueNotFoundError(ParseError): pass
+class IdentifierNotFound(ParseError): pass
 
 class Parser(object):
     
@@ -147,7 +162,10 @@ class Parser(object):
         for op_cls in operands:
             op = op_cls(session)
             self._symbol_to_op[op.get_symbol()] = op
-        
+
+    def get_operand_strings(self):
+        return self._symbol_to_op.keys()
+            
     def string_to_filter(self, s):
         ex = ast.parse(s, mode='eval')
         return self.handle(ex.body)
@@ -157,8 +175,9 @@ class Parser(object):
         try:
             handler = getattr(self, 'handle_' + thing_name)
         except AttributeError:
-            raise ParseError("Don't know how to parse {}".format(self.__class__.__name__, thing_name),
-                             col_offset=thing.col_offset)
+            raise ParseError("Illegal expression ({})".format(thing_name),
+                             col_offset=thing.col_offset,
+                             options=self.get_operand_strings())
         return handler(thing)
 
     def handle_BoolOp(self, op):

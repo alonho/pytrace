@@ -10,9 +10,6 @@ class DB(object):
         Base.metadata.create_all(engine)
         self.session = sessionmaker(bind=engine, autocommit=False)()
 
-    def count(self):
-        return self.session.query(Trace).count()
-
     def find(self, start_index=None, end_index=None, filter=None):
         # order_by(Trace.time) might be better for the UI but how will we show overflow than?
         q = self.query(filter)
@@ -25,11 +22,14 @@ class DB(object):
         return q
 
     def query(self, filter=None):
-        query = self.session.query(Trace).join(association_table).join(Arg).join(ArgName).options(joinedload('args'), joinedload('args.name'))
+        query = self.session.query(Trace).outerjoin(Func).outerjoin(Module).outerjoin(association_table).outerjoin(Arg).outerjoin(Type).outerjoin(ArgName).outerjoin(ArgValue).options(joinedload('*')).group_by(Trace.id)
         if filter is not None:
             return query.filter(filter)
         return query
 
+    def count(self, filter=None):
+        return self.query(filter).group_by(Trace.id).count()
+        
     def filter(self, filter):
         return self.query().filter(filter)
     
