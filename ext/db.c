@@ -37,15 +37,30 @@ void db_truncate(int count) {
   int sqlite_status;
   sqlite3_reset(stmt_delete_traces);
   SQLITE_ASSERT(sqlite3_bind_int(stmt_delete_traces, 1, count));
-  SQLITE_DONE_OR_CONSTRAINT(sqlite3_step(stmt_delete_traces));
+  sqlite_status = sqlite3_step(stmt_delete_traces);
+  SQLITE_DONE_OR_CONSTRAINT(sqlite_status);
   if (sqlite3_changes(db) > 0) {
-    SQLITE_DONE_OR_CONSTRAINT(sqlite3_step(stmt_delete_funcs));
-    SQLITE_DONE_OR_CONSTRAINT(sqlite3_step(stmt_delete_modules));
-    SQLITE_DONE_OR_CONSTRAINT(sqlite3_step(stmt_delete_assoc));  
-    SQLITE_DONE_OR_CONSTRAINT(sqlite3_step(stmt_delete_args));
-    SQLITE_DONE_OR_CONSTRAINT(sqlite3_step(stmt_delete_types));
-    SQLITE_DONE_OR_CONSTRAINT(sqlite3_step(stmt_delete_arg_names));
-    SQLITE_DONE_OR_CONSTRAINT(sqlite3_step(stmt_delete_arg_values));
+    sqlite3_reset(stmt_delete_funcs);
+    sqlite_status = sqlite3_step(stmt_delete_funcs);
+    SQLITE_DONE_OR_CONSTRAINT(sqlite_status);
+    sqlite3_reset(stmt_delete_modules);
+    sqlite_status = sqlite3_step(stmt_delete_modules);
+    SQLITE_DONE_OR_CONSTRAINT(sqlite_status);
+    sqlite3_reset(stmt_delete_assoc);
+    sqlite_status = sqlite3_step(stmt_delete_assoc);
+    SQLITE_DONE_OR_CONSTRAINT(sqlite_status);
+    sqlite3_reset(stmt_delete_args);
+    sqlite_status = sqlite3_step(stmt_delete_args);
+    SQLITE_DONE_OR_CONSTRAINT(sqlite_status);
+    sqlite3_reset(stmt_delete_types);
+    sqlite_status = sqlite3_step(stmt_delete_types);
+    SQLITE_DONE_OR_CONSTRAINT(sqlite_status);
+    sqlite3_reset(stmt_delete_arg_names);
+    sqlite_status = sqlite3_step(stmt_delete_arg_names);
+    SQLITE_DONE_OR_CONSTRAINT(sqlite_status);
+    sqlite3_reset(stmt_delete_arg_values);
+    sqlite_status = sqlite3_step(stmt_delete_arg_values);
+    SQLITE_DONE_OR_CONSTRAINT(sqlite_status);
   }
 }
 

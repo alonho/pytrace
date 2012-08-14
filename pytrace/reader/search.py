@@ -134,6 +134,7 @@ class SearchBox(object):
 
     def find_next(self):
         if self._direction is None:
+            self._frame.set_footer(self._edit)
             self._edit.set_caption('No pattern defined.')
             return
         if self._direction == 'forward':
@@ -145,8 +146,8 @@ class SearchBox(object):
 
     def find_previous(self):
         if self._direction is None:
+            self._frame.set_footer(self._edit)
             self._edit.set_caption('No pattern defined.')
-            self._search_pattern = None
             return
         if self._direction == 'forward':
             self._set_search_range(self._get_current() - 1, 0)

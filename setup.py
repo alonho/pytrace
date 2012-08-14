@@ -20,4 +20,5 @@ setup(name='pytrace',
                              # for all you poor folks using macports
                              include_dirs=["/opt/local/include"],
                              libraries=["protobuf-c", "sqlite3"],
-                             extra_compile_args=extra_compile_args)])
+                             extra_compile_args=extra_compile_args)],
+      entry_points={'console_scripts': ['pytrace=pytrace.__main__:main']})
