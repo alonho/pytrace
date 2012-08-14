@@ -13,7 +13,10 @@ palette = [('time', '', '', '', '#9cf', ''),
            
            ('search', '', '', '', '#f99', '#fff'),
            ('error', '', '', '', '#f99', ''),
-           ('options', '', '', '', '#9cf', '')]
+           ('options', '', '', '', '#9ff', ''),
+           
+           ('key', '', '', '', '#f99', ''),
+           ('action', '', '', '', '#9ff', '')]
 
 class LessLikeListBox(urwid.ListBox):
 
@@ -46,6 +49,13 @@ class LessLikeListBox(urwid.ListBox):
             if key in box.FUNC_MAP:
                 return box.FUNC_MAP[key](box)
         return super(LessLikeListBox, self).keypress(size, self.KEY_MAP.get(key, key))
+
+    def get_keys_and_actions(self):
+        keys_and_actions = self.KEY_MAP.items()
+        for func_map in [self.FUNC_MAP] + [box.FUNC_MAP for box in self._edit_boxes]:
+            for key, func in func_map.iteritems():
+                keys_and_actions.append((key, func.__name__))
+        return keys_and_actions
         
 def redraw():
     size = screen.get_cols_rows()
@@ -59,8 +69,9 @@ def unhandled_input(key):
 try:
     content = TraceWalker()
     listbox = LessLikeListBox(content)
-    listbox._invalidate()
-    top = urwid.Frame(listbox)
+    head = urwid.Text(sum(([('action', action), ' : ', ('key', key), ' ']
+                           for key, action in listbox.get_keys_and_actions()), []), wrap='clip')
+    top = urwid.Frame(listbox, head)
     listbox.set_frame(top)
     screen = urwid.raw_display.Screen()
     screen.set_terminal_properties(colors=256)

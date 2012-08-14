@@ -169,7 +169,7 @@ class FilterBox(object):
         self._frame = None
         self._parser = Parser(trace_walker.db.session)
         self._edit = LineEdit(caption='> ')
-        self._hint = urwid.Text('')
+        self._hint = urwid.Text([('options', 'Example: '), "func == 'fib' and arg == 'return value' and not value == '1'"])
         self._options = urwid.Text('')
         self._set_options(self._parser.get_operand_strings())
         self._pile = urwid.Pile([self._hint, self._options, self._edit])

@@ -52,7 +52,7 @@ class StringOperand(Operand):
 
     def normalize(self, ast_node):
         if not isinstance(ast_node, ast.Str):
-            raise InvalidTypeError('Expected string, got: {}'.format(ast_node.__class__.__name__),
+            raise InvalidTypeError('{} can only compare with a string, not {}'.format(self.get_symbol(), ast_node.__class__.__name__),
                                    col_offset=ast_node.col_offset,
                                    options=self.get_options())
         return ast_node
@@ -65,7 +65,7 @@ class StringOperand(Operand):
             prefix_options = self.get_options(filter=self.get_column().like(string_node.s + '%'))
             if prefix_options:
                 options = prefix_options
-            raise ValueNotFoundError("Invalid {}: {}".format(self.get_symbol(), string_node.s),
+            raise ValueNotFoundError("{} not found: {}".format(self.get_symbol(), string_node.s),
                                      col_offset=string_node.col_offset,
                                      options=options)
         return q
@@ -127,7 +127,7 @@ class TidOp(IntegerOperand):
 class TimeOp(IntegerOperand):
     def normalize(self, ast_node):
         if not isinstance(ast_node, ast.Str):
-            raise InvalidTypeError('Expected string, got: {}'.format(ast_node.__class__.__name__),
+            raise InvalidTypeError('{} can only compare with a string, not {}'.format(self.get_symbol(), ast_node.__class__.__name__),
                                    col_offset=ast_node.col_offset)
         try:
             time_tuple = time.strptime(ast_node.s, TIME_FORMAT)
