@@ -53,6 +53,7 @@ void dump(void) {
   while (1) {
     switch (size = reader_read(reader, buf)) {
     case 0:
+      db_truncate(MAX_TRACES);
       if (should_stop) {
 	db_commit();
 	should_stop = 0;

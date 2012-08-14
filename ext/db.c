@@ -12,7 +12,7 @@ sqlite3 ./db.sqlite "select traces.id, time, tid, type, depth, modules.value, fu
 #define SQLITE_PREPARE(query, stmt) SQLITE_ASSERT(sqlite3_prepare_v2(db, (query), -1, (stmt), NULL))
 
 sqlite3 *db;
-sqlite3_stmt *stmt_modules_insert, *stmt_modules_select, *stmt_funcs_insert, *stmt_funcs_select, *stmt_types_insert, *stmt_types_select, *stmt_arg_names_insert, *stmt_arg_names_select, *stmt_arg_values_insert, *stmt_arg_values_select, *stmt_args_insert, *stmt_args_select, *stmt_traces_insert, *stmt_assoc_insert;
+sqlite3_stmt *stmt_modules_insert, *stmt_modules_select, *stmt_funcs_insert, *stmt_funcs_select, *stmt_types_insert, *stmt_types_select, *stmt_arg_names_insert, *stmt_arg_names_select, *stmt_arg_values_insert, *stmt_arg_values_select, *stmt_args_insert, *stmt_args_select, *stmt_traces_insert, *stmt_assoc_insert, *stmt_delete_args, *stmt_delete_types, *stmt_delete_assoc, *stmt_delete_funcs, *stmt_delete_traces, *stmt_delete_modules, *stmt_delete_arg_names, *stmt_delete_arg_values;
 
 void db_begin(void) {
   SQLITE_EXEC("BEGIN");
@@ -30,6 +30,22 @@ void db_commit(void) {
       db_begin();
       return;
     }
+  }
+}
+
+void db_truncate(int count) {
+  int sqlite_status;
+  sqlite3_reset(stmt_delete_traces);
+  SQLITE_ASSERT(sqlite3_bind_int(stmt_delete_traces, 1, count));
+  SQLITE_DONE_OR_CONSTRAINT(sqlite3_step(stmt_delete_traces));
+  if (sqlite3_changes(db) > 0) {
+    SQLITE_DONE_OR_CONSTRAINT(sqlite3_step(stmt_delete_funcs));
+    SQLITE_DONE_OR_CONSTRAINT(sqlite3_step(stmt_delete_modules));
+    SQLITE_DONE_OR_CONSTRAINT(sqlite3_step(stmt_delete_assoc));  
+    SQLITE_DONE_OR_CONSTRAINT(sqlite3_step(stmt_delete_args));
+    SQLITE_DONE_OR_CONSTRAINT(sqlite3_step(stmt_delete_types));
+    SQLITE_DONE_OR_CONSTRAINT(sqlite3_step(stmt_delete_arg_names));
+    SQLITE_DONE_OR_CONSTRAINT(sqlite3_step(stmt_delete_arg_values));
   }
 }
 
@@ -120,7 +136,16 @@ void db_init(void) {
   SQLITE_PREPARE("SELECT id FROM args WHERE type_id=? AND name_id=? AND value_id=?", &stmt_args_select);
   SQLITE_PREPARE("INSERT INTO traces (type, time, depth, tid, func_id) VALUES (?, ?, ?, ?, ?)", &stmt_traces_insert);
   SQLITE_PREPARE("INSERT INTO association (trace_id, arg_id) VALUES (?, ?)", &stmt_assoc_insert);
-  
+
+  SQLITE_PREPARE("DELETE FROM traces WHERE id NOT IN (SELECT id FROM traces ORDER BY id DESC limit (?));", &stmt_delete_traces);
+  SQLITE_PREPARE("DELETE FROM funcs WHERE id NOT IN (SELECT DISTINCT func_id FROM traces);", &stmt_delete_funcs);
+  SQLITE_PREPARE("DELETE FROM modules WHERE id NOT IN (SELECT DISTINCT module_id FROM funcs);", &stmt_delete_modules);
+  SQLITE_PREPARE("DELETE FROM association WHERE trace_id NOT IN (SELECT id FROM traces);", &stmt_delete_assoc);
+  SQLITE_PREPARE("DELETE FROM args WHERE id NOT IN (SELECT arg_id FROM association);", &stmt_delete_args);
+  SQLITE_PREPARE("DELETE FROM arg_names WHERE id NOT IN (SELECT name_id FROM args);", &stmt_delete_arg_names);
+  SQLITE_PREPARE("DELETE FROM arg_values WHERE id NOT IN (SELECT value_id FROM args);", &stmt_delete_arg_values);
+  SQLITE_PREPARE("DELETE FROM types WHERE id NOT IN (SELECT type_id FROM args);", &stmt_delete_types);
+
   db_begin();
 }
 

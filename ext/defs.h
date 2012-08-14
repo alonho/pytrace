@@ -10,10 +10,11 @@
 // 1 for args names, 1 for args values, 1 for rest of fields of a record
 #define MAX_RECORD_SIZE MAX_ARGS * MAX_STR_SIZE * 3 
 // make sure MAX_RECORD_SIZE < RB_SIZE
-#define RB_SIZE 4194304 // 4MB
+#define RB_SIZE 2097152 // 2MB
 // the address is only for sync between the reader/writer
 #define RING_ADDRESS (void*) 0x40000000000
 #define COMMIT_INTERVAL 5000
+#define MAX_TRACES 10000
 
 #define DONT_TRACE_NAME "PYTRACE_OFF"
 
