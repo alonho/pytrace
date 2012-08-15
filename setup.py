@@ -13,7 +13,7 @@ setup(name='pytrace',
       classifiers = ["Development Status :: 3 - Alpha",
                      "Intended Audience :: Developers",
                      "Environment :: Console :: Curses",
-                     "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)"
+                     "License :: OSI Approved :: GNU Library or Lesser General Public License (LGPL)",
                      "Operating System :: POSIX :: Linux",
                      "Operating System :: MacOS :: MacOS X",
                      "Programming Language :: Python :: 2.7",
