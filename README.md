@@ -6,10 +6,6 @@ pytrace records function calls, arguments and return values.
 
 traces aid debugging, profiling and obviate logging.
 
-The collected data can be viewed searched and filtered in an interactive reader.
-
-Check out the github wiki for screenshots: 
-
 Follow @alonhorev on twitter for updates.
 
 Install
@@ -17,8 +13,8 @@ Install
 
 	pip install pytrace
 
-Simple Usage
-------------
+Usage
+-----
 
 Invoke pytrace with your script:
 
@@ -29,6 +25,26 @@ Invoke the reader from the same directory by executing pytrace with no arguments
 	$ pytrace
 
 The reader can be invoked while the script is running. providing 'online' debugging capabilities.
+
+Reader
+------
+
+The collected data can be viewed in an interactive reader:
+
+![trace reader](pics/view.png "trace reader")
+
+The reader can search for regular expressions:
+
+![trace search](pics/search.png "trace search")
+
+The reader can filter traces using a python syntax:
+
+![trace filter](pics/filter.png "trace filter")
+
+The reader corrects queries that don't match anything:
+
+![filter correction](pics/correction.png "filter correction")
+
 
 The Database
 ------------
