@@ -39,8 +39,8 @@ The reader can search for regular expressions:
 
 The reader can filter traces using a python syntax:
 
-1. strings support comparison using the sql 'like' syntax: *module == 'project.%'*.
-2. numbers support numeric operators: *time > '2012/08/15 01:23:45'*.
+1. strings support comparison using the sql 'like' syntax: `module == 'project.%'`.
+2. numbers support numeric operators: `time > '2012/08/15 01:23:45'`.
 
 ![trace filter](https://github.com/alonho/pytrace/raw/master/pics/filter.png)
 
