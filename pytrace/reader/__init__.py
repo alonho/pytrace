@@ -64,7 +64,7 @@ class LessLikeListBox(urwid.ListBox):
     def get_keys_and_actions_text(self):
         res = []
         for key, action in self.get_keys_and_actions():
-            res.extend([('action', action), ' : ', ('key', key), ' '])
+            res.extend([('action', action.replace('_', ' ')), ' : ', ('key', key), ' '])
         return urwid.Text(res, wrap='clip')
 
 def main():

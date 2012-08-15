@@ -56,6 +56,7 @@ if __name__ == '__main__':
         exceptions()
         A().foo()
         kwargs(a="DAAAAAAAAAAAAA", b=20)
+        fib(10)
         mix(10, 20, 30, "bla", k="BLO")
         vararg(1, 2, 3)
         kwargs(a="BAAAAAAAAAAAAA", b=20)
