@@ -5,7 +5,7 @@ from sqlalchemy import (Table, Column, Integer, String, Enum,
 
 class DB(object):
 
-    def __init__(self, uri="sqlite:///db.sqlite", echo=False):
+    def __init__(self, uri="sqlite:///traces.sqlite", echo=False):
         engine = create_engine(uri, echo=echo)
         Base.metadata.create_all(engine)
         self.session = sessionmaker(bind=engine, autocommit=False)()
@@ -59,7 +59,7 @@ class Trace(Base):
     __tablename__ = "traces"
 
     id = Column(Integer, primary_key=True)
-    type = Column(Enum("call", "return", "exception"))
+    type = Column(Enum("call", "return", "exception", "overflow", "log"))
     time = Column(Integer, index=True)
     depth = Column(Integer)
     tid = Column(Integer)

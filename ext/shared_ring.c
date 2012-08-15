@@ -26,7 +26,7 @@ Ring *shared_ring_init(int readonly) {
   Ring *ring;
   int shmid, shm_existed;
   unsigned char *mem;
-  key = ftok("/tmp", 123456);
+  key = ftok("/tmp", 12345); // getpid() is better but maps a new one everytime, how to clean it?
   shm_existed = shm_exists(key);
     
   // read/write by user and group

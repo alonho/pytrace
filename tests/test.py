@@ -9,8 +9,8 @@ def simple(arg):
     pass
 
 @notrace
-def test_no_trace():
-    pass
+def test_no_trace(n):
+    return n * 2
     
 def default(arg=10):
     mix(10)
@@ -38,26 +38,21 @@ def exceptions():
         
 class A(object):
 
-    def foo(self):
+    def foo(self, a, b, c=None):
         return self
-
     
 if __name__ == '__main__':
-    import pytrace
     import time
-    import threading
-
     t = time.time()
-    with pytrace.trace_context():
-        simple(10)
-        test_no_trace()
-        vararg(10, 20)
-        kwargs(a=10, b=20)
-        exceptions()
-        A().foo()
-        kwargs(a="DAAAAAAAAAAAAA", b=20)
-        fib(10)
-        mix(10, 20, 30, "bla", k="BLO")
-        vararg(1, 2, 3)
-        kwargs(a="BAAAAAAAAAAAAA", b=20)
-        print time.time() - t
+    simple(10)
+    assert 200 == test_no_trace(100)
+    vararg(10, 20)
+    kwargs(a=10, b=20)
+    exceptions()
+    A().foo(10, b=100)
+    kwargs(a="DAAAAAAAAAAAAA", b=20)
+    fib(10)
+    mix(10, 20, 30, "bla", k="BLO")
+    vararg(1, 2, 3)
+    kwargs(a="BAAAAAAAAAAAAA", b=20)
+    print time.time() - t

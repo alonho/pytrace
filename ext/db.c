@@ -68,7 +68,7 @@ void db_init(void) {
   // config is effective only before open, avoid mutexes for performance
   sqlite3_config(SQLITE_CONFIG_SINGLETHREAD); 
   // WAL is a fast journal
-  SQLITE_ASSERT(sqlite3_open_v2("db.sqlite", 
+  SQLITE_ASSERT(sqlite3_open_v2("traces.sqlite", 
 				&db, 
 				SQLITE_OPEN_CREATE | 
 				SQLITE_OPEN_READWRITE | 
