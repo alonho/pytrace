@@ -2,7 +2,7 @@
 sqlite3 ./db.sqlite "select traces.id, time, tid, type, depth, modules.value, funcs.name, types.value, arg_values.value, arg_names.value from traces join funcs on (traces.func_id=funcs.id) join modules on (funcs.module_id=modules.id) join association on (traces.id=association.trace_id) join args on (association.arg_id=args.id) join arg_names on (args.name_id=arg_names.id) join arg_values on (args.value_id=arg_values.id) join types on (args.type_id=types.id);"
  */
 #include <sqlite3.h>
-#include "record.pb-c.h"
+#include "record_pb.h"
 #include "defs.h"
 #include "db.h"
 

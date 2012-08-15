@@ -5,7 +5,7 @@
 #define PROTOBUF_C_NO_DEPRECATED
 #endif
 
-#include "record.pb-c.h"
+#include "record_pb.h"
 void   argument__init
                      (Argument         *message)
 {

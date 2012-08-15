@@ -1,7 +1,7 @@
 #ifndef SERIAL_H
 #define SERIAL_H
 
-#include "record.pb-c.h"
+#include "record_pb.h"
 #include "Python.h"
 #include "frameobject.h"
 

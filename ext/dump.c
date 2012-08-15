@@ -6,7 +6,7 @@
 #include "defs.h"
 #include "ring.h"
 #include "shared_ring.h"
-#include "record.pb-c.h"
+#include "record_pb.h"
 #include "dump.h"
 
 Ring *ring;

@@ -1,7 +1,7 @@
 #ifndef DB_H
 #define DB_H
 
-#include "record.pb-c.h"
+#include "record_pb.h"
 
 void db_init(void);
 void db_commit(void);
