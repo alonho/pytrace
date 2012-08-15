@@ -33,9 +33,9 @@ The reader can be invoked while the script is running. providing 'online' debugg
 The Database
 ------------
 
-The database is saved in the current working directory and is named *traces.sqlite*.
+The database is saved in the current working directory and is named **traces.sqlite**.
 
-In order to not run out of disk space, The database will be truncated to a fixed number of traces (currently hard coded to 10000). 
+In order to not run out of **disk space**, The database will be truncated to a fixed number of traces (currently hard coded to 10000). 
 
 Reducing the overhead
 ---------------------
@@ -52,7 +52,7 @@ Trace specific packages:
 
 	$ export TRACE_MODULES=/Users/alon/project
 
-Multiple folders can be separated by a colon (':') can be used.
+You can specify a colon (:) separated list of folders as well.
 
 TODO
 ----
@@ -66,3 +66,4 @@ TODO
 4. Sort the arguments.
 5. Scroll horizontally.
 6. Ignore traces created by the library.
+7. Filter query autocompletion using tab/arrows.
