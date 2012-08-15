@@ -29,7 +29,7 @@ The reader can be invoked while the script is running. providing 'online' debugg
 Reader
 ------
 
-The collected data can be viewed in an interactive reader:
+The collected data can be viewed in an interactive reader. The reader supports less-like key bindings.
 
 ![trace reader](https://github.com/alonho/pytrace/raw/master/pics/view.png)
 
