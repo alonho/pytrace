@@ -11,7 +11,7 @@ Follow @alonhorev on twitter for updates.
 Install
 -------
 
-pytrace relies on sqlite and a C implementation of protocol buffers.
+pytrace depends on sqlite and a C implementation of protocol buffers.
 
 on debian/ubuntu: `sudo apt-get install libsqlite3-dev libprotobuf-c0-dev`
 
