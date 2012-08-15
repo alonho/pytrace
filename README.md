@@ -11,6 +11,10 @@ Follow @alonhorev on twitter for updates.
 Install
 -------
 
+pytrace relies on sqlite and a C implementation of protocol buffers.
+on debian/ubuntu: `sudo apt-get install libsqlite3-dev libprotobuf-c0-dev`
+on mac (sqlite is included): `brew install protobuf-c` or `port install protobuf-c`
+
 	pip install pytrace
 
 Usage
@@ -51,7 +55,7 @@ The reader corrects queries that don't match anything:
 The Database
 ------------
 
-The database is saved in the current working directory and is named **traces.sqlite**.
+The database is saved in the current working directory and is named `traces.sqlite`.
 
 In order to not run out of **disk space**, The database will be truncated to a fixed number of traces (currently hard coded to 10000). 
 
@@ -70,7 +74,7 @@ Trace specific packages:
 
 	$ export TRACE_MODULES=/Users/alon/project
 
-You can specify a colon (:) separated list of folders as well.
+You can specify a colon `:` separated list of folders as well.
 
 TODO
 ----
@@ -85,3 +89,5 @@ TODO
 5. Scroll horizontally.
 6. Ignore traces created by the library.
 7. Filter query autocompletion using tab/arrows.
+8. Print '...' on overflown strings.
+9. Document multiple process support. (one db, two processes)
