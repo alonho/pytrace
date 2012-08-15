@@ -12,8 +12,12 @@ Install
 -------
 
 pytrace relies on sqlite and a C implementation of protocol buffers.
+
 on debian/ubuntu: `sudo apt-get install libsqlite3-dev libprotobuf-c0-dev`
+
 on mac (sqlite is included): `brew install protobuf-c` or `port install protobuf-c`
+
+install pytrace:
 
 	pip install pytrace
 
