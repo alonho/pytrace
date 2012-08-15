@@ -31,19 +31,19 @@ Reader
 
 The collected data can be viewed in an interactive reader:
 
-![trace reader](pics/view.png)
+![trace reader](https://github.com/alonho/pytrace/raw/master/pics/view.png)
 
 The reader can search for regular expressions:
 
-![trace search](pics/search.png)
+![trace search](https://github.com/alonho/pytrace/raw/master/pics/search.png)
 
 The reader can filter traces using a python syntax:
 
-![trace filter](pics/filter.png)
+![trace filter](https://github.com/alonho/pytrace/raw/master/pics/filter.png)
 
 The reader corrects queries that don't match anything:
 
-![filter correction](pics/correction.png)
+![filter correction](https://github.com/alonho/pytrace/raw/master/pics/correction.png)
 
 
 The Database
