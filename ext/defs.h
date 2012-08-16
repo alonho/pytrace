@@ -27,11 +27,11 @@
 #define __ASSERT(expression, file, lineno)  \
   (printf ("%s:%u: failed assertion\n", file, lineno), abort (), 0)
 
-inline static int min(int x, int y) {
+static inline int min(int x, int y) {
   return (x < y) ? x : y;
 }
 
-inline static double floattime(void)
+static inline double floattime(void)
 {
   struct timeval t;
   gettimeofday(&t, NULL);

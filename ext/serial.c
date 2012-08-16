@@ -10,7 +10,7 @@ static Argument **arguments; // pre-allocate maximum number of arguments
 static unsigned char *record_buf;
 static pthread_key_t depth_key, no_trace_context_key;
 
-inline char *pyobj_to_cstr(PyObject *obj) {
+static inline char *pyobj_to_cstr(PyObject *obj) {
   PyObject *string = PyObject_Repr(obj);
   if (NULL == string) {
     return "STR FAILED";
@@ -93,7 +93,7 @@ void handle_trace(PyFrameObject *frame, Record__RecordType record_type, int n_ar
   write_record(record_buf, (unsigned long) record__get_packed_size(record));
 }
 
-inline void handle_call(PyFrameObject *frame) {  
+void handle_call(PyFrameObject *frame) {  
   PyObject *name, *value;
   int i, argcount, count = 0;
   increment_depth();
@@ -131,7 +131,7 @@ inline void handle_call(PyFrameObject *frame) {
   handle_trace(frame, RECORD__RECORD_TYPE__CALL, count);
 }
 
-inline void handle_return(PyFrameObject *frame, PyObject *value) {
+void handle_return(PyFrameObject *frame, PyObject *value) {
   decrement_depth();
   if (in_no_trace_context()) {
     if (should_exit_no_trace_context()) {
@@ -149,7 +149,7 @@ inline void handle_return(PyFrameObject *frame, PyObject *value) {
   handle_trace(frame, RECORD__RECORD_TYPE__RETURN, 1);
 }
     
-inline void handle_exception(PyFrameObject *frame, PyObject *exc_info) {
+void handle_exception(PyFrameObject *frame, PyObject *exc_info) {
   set_string(&(arguments[0]->name), "exception");
   set_string(&(arguments[0]->type), ((PyTypeObject*) PyTuple_GET_ITEM(exc_info, 0))->tp_name);
   set_string(&(arguments[0]->value), pyobj_to_cstr(PyTuple_GET_ITEM(exc_info, 1)));

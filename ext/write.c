@@ -9,6 +9,6 @@ void init_writer(void) {
   ASSERT(0 != ring);
 }
 
-inline void write_record(unsigned char* buf, unsigned long size) {
+void write_record(unsigned char* buf, unsigned long size) {
   ring_write(ring, buf, size);
 }
