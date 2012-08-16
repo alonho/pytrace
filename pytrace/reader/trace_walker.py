@@ -18,7 +18,7 @@ def prettify(trace):
     return urwid.Columns([('fixed', 28, urwid.Text(('time', time_str))),
                           ('fixed', 10, urwid.Text(('tid', str(trace.tid)))),
                           ('fixed', 24, urwid.Text(('module', trace.func.module.value), wrap='clip', align='right')),
-                          urwid.Text([func_prefix, ('func', trace.func.name), '('] + args + [')'], wrap='clip')],
+                          urwid.Text([func_prefix, ('func', trace.func.name or 'UNKNOWN'), '('] + args + [')'], wrap='clip')],
                          dividechars=1)
 
 class TraceWalker(object):
