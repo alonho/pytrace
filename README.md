@@ -5,7 +5,7 @@ pytrace records function calls, arguments and return values.
 
 traces aid debugging, profiling and obviate logging.
 
-Follow @alonhorev on twitter for updates.
+Follow **@alonhorev** on **twitter** for updates.
 
 Install
 -------
@@ -46,10 +46,20 @@ The reader can search for regular expressions:
 
 ![trace search](https://github.com/alonho/pytrace/raw/master/pics/search.png)
 
-The reader can filter traces using a python syntax:
+The reader can filter traces using a python expressions. The following fields can be used for filters:
 
-1. strings support comparison using the sql 'like' syntax: `module == 'project.%'`.
-2. numbers support numeric operators: `time > '2012/08/15 01:23:45'`.
+1. time - int
+2. tid - int
+3. module - string
+4. func - string
+5. arg (argument name) - string. special arguments are 'return value' and 'exception' used to filter function return values and exceptions.
+6. value (argument value)  - string
+7. type (argument type) - string
+
+Field types:
+
+1. int fields - supports algebric operators (>, <, >=, <=, ==). e.g: `time > '2012/08/15 01:23:45'`.
+2. string fields: support string comparison (==, !=). strings comparison supports sql 'like' syntax. for example: `module == 'proj%'` filters modules starting with 'proj'.
 
 ![trace filter](https://github.com/alonho/pytrace/raw/master/pics/filter.png)
 
