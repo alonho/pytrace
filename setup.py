@@ -1,12 +1,11 @@
 from setuptools import setup
 from distutils.core import Extension
-import glob
 
 OPTIMIZATIONS = False # by default extension are compiled with O2
 extra_compile_args = [] if OPTIMIZATIONS else ["-O0"]
 
 setup(name='pytrace',
-      version='0.1.6',
+      version='0.1.8',
       description='pytrace is a fast python tracer. pytrace records function calls, arguments and return values. traces aid debugging, profiling and obviate logging.',
       author='Alon Horev',
       author_email='alonho@gmail.com',

@@ -11,11 +11,18 @@ static unsigned char *record_buf;
 static pthread_key_t depth_key, no_trace_context_key;
 
 static inline char *pyobj_to_cstr(PyObject *obj) {
+  char *result;
   PyObject *string = PyObject_Repr(obj);
   if (NULL == string) {
     return "STR FAILED";
   }
-  return PyString_AsString(string);
+  // an empty string in sqlite is interpreted as python None,
+  // returning a pythonic empty string is prettier.
+  result = PyString_AsString(string);
+  if (result[0] == NULL) {
+    return "''"; 
+  }
+  return result;
 }
 
 void init_serialize(void) {
@@ -97,7 +104,6 @@ void handle_call(PyFrameObject *frame) {
   PyObject *name, *value;
   int i, argcount, count = 0;
   increment_depth();
-  
   if (in_no_trace_context()) {
     return;
   }
