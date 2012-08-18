@@ -44,23 +44,25 @@ void print_record(Record *rec) {
   printf("\n");
 }
 
-int print_records = 0;
 int should_stop = 0;
 
 void dump(void) {
-  int size, count=0, last_was_overflow=FALSE;
+  int size, count=0, last_was_overflow=FALSE, last_was_none=FALSE;
   Record *rec;
   while (1) {
     switch (size = reader_read(reader, buf)) {
     case 0:
-      db_truncate(MAX_TRACES);
       if (should_stop) {
 	db_commit();
 	should_stop = 0;
 	return;
+      } 
+      if (FALSE == last_was_none) {
+	db_truncate(MAX_TRACES);
       }
+      last_was_none = TRUE;
       db_commit();
-      usleep(100);
+      usleep(50000); // 50 ms
       count = 0;
       break;
     case READ_OVERFLOW:
@@ -72,6 +74,7 @@ void dump(void) {
     default:
       count++;
       last_was_overflow = FALSE;
+      last_was_none = FALSE;
       rec = record__unpack(NULL, size, buf);
       assert(NULL != rec);
       db_handle_record(rec);
