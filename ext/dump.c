@@ -74,10 +74,8 @@ void dump(void) {
       last_was_overflow = FALSE;
       rec = record__unpack(NULL, size, buf);
       assert(NULL != rec);
-      if (print_records) {
-	print_record(rec);
-      }
       db_handle_record(rec);
+      record__free_unpacked(rec, NULL);
       if (COMMIT_INTERVAL < count) {
 	count = 0;
 	db_commit();
