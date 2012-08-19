@@ -38,4 +38,8 @@ static inline double floattime(void)
   return (double) t.tv_sec + t.tv_usec * 0.000001;
 }
 
+#if PY_MAJOR_VERSION >= 3
+#define IS_PY3K
+#endif
+
 #endif

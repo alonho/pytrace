@@ -1,5 +1,4 @@
 import urwid
-
 from .trace_walker import TraceWalker
 from .search import SearchBox, FilterBox
 
@@ -55,9 +54,9 @@ class LessLikeListBox(urwid.ListBox):
         return super(LessLikeListBox, self).keypress(size, self.KEY_MAP.get(key, key))
 
     def get_keys_and_actions(self):
-        keys_and_actions = self.KEY_MAP.items()
+        keys_and_actions = list(self.KEY_MAP.items())
         for func_map in [self.FUNC_MAP] + [box.FUNC_MAP for box in self._edit_boxes]:
-            for key, func in func_map.iteritems():
+            for key, func in func_map.items():
                 keys_and_actions.append((key, func.__name__))
         return keys_and_actions
 

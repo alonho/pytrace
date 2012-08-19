@@ -1,3 +1,4 @@
+import six
 import ast
 import time
 import operator
@@ -9,12 +10,11 @@ class ClassCollector(type):
     classes = []
     def __new__(cls, name, bases, dct):
         new = super(ClassCollector, cls).__new__(cls, name, bases, dct)
-        if not dct.get('ABSTRACT', False):
+        if not dct.get('ABSTRACT', False) and name != 'NewBase':
             cls.classes.append(new)
         return new
         
-class Operand(object):
-    __metaclass__ = ClassCollector
+class Operand(six.with_metaclass(ClassCollector)):
     ABSTRACT = True
 
     def __init__(self, session):

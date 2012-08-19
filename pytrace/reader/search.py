@@ -1,4 +1,5 @@
 import re
+import six
 import urwid
 from .urwid_utils import LineEdit
 from .query import Parser, ParseError
@@ -128,7 +129,7 @@ class SearchBox(object):
 
     def _find_next_match(self):
         content = self._get_content()
-        for i in xrange(self._search_range_start, self._search_range_end, self._search_range_step):
+        for i in six.moves.xrange(self._search_range_start, self._search_range_end, self._search_range_step):
             if any(map(matches, content[i].widget_list)):
                 return i
 

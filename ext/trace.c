@@ -7,23 +7,36 @@
 
 #define MODULE_DOC PyDoc_STR("C extension for fast function tracing.")
 
-static PyListObject *filter_modules = NULL;
+static PyObject *filter_modules = NULL;
 
 int should_trace_module(PyObject *module_str) {
-  int i;
+  int i, len, found;
+  PyObject *item;
+#ifndef IS_PY3K
   char *filter, *module;
-  
+#endif
+
   if (NULL == filter_modules) {
     return TRUE;
   }
+
+#ifndef IS_PY3K
   module = PyString_AsString(module_str);
-  for (i = 0; i < PyList_Size((PyObject*) filter_modules); i++) {
-    filter = PyString_AsString(PyList_GetItem((PyObject*) filter_modules, i));
-    if (0 == strncmp(module, filter, strlen(filter))) {
-      return TRUE;
-    };
+#endif
+
+  found = FALSE;
+  len = PyList_Size(filter_modules);
+  for (i = 0; i < len && FALSE == found; i++) {
+    item = PyList_GetItem(filter_modules, i);
+#ifdef IS_PY3K
+    found = PyUnicode_Find(module_str, item, 0, PyUnicode_GetSize(item), 1) >= 0 ? TRUE : FALSE ;
+#else
+    filter = PyString_AsString(item);
+    found = strncmp(module, filter, strlen(filter)) == 0 ? TRUE : FALSE;
+#endif
   }
-  return FALSE;
+
+  return found;
 }
 
 static int
@@ -103,8 +116,27 @@ methods[] = {
   {NULL}
 };
 
+#ifdef IS_PY3K
+static struct PyModuleDef moduledef = {
+  PyModuleDef_HEAD_INIT,
+  "pytrace.tracer",
+  NULL,
+  -1,
+  methods,
+  NULL,
+  NULL,
+  NULL,
+  NULL
+};
+
+PyObject *
+PyInit_tracer(void) {
+  return PyModule_Create(&moduledef);
+}
+#else
 void
 inittracer(void)
 {
   Py_InitModule3("pytrace.tracer", methods, MODULE_DOC);
 }
+#endif

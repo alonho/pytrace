@@ -10,16 +10,52 @@ static Argument **arguments; // pre-allocate maximum number of arguments
 static unsigned char *record_buf;
 static pthread_key_t depth_key, no_trace_context_key;
 
+#ifdef IS_PY3K
+
+static int refs_count = 0;
+static PyObject *refs[MAX_ARGS * 3];
+
+static
+void CLEAR_REFS(void) {
+  int i = 0;
+  for (; i < refs_count; i++) {
+    Py_DECREF(refs[i]);
+  }
+  refs_count = 0;
+}
+
+static 
+char* PYSTR_TO_CHAR(PyObject *obj) {
+  PyObject* bytes = PyUnicode_AsUTF8String(obj);
+  refs[refs_count] = bytes;
+  refs_count++;
+  ASSERT(refs_count < MAX_ARGS * 3);
+  return PyBytes_AsString(bytes);
+}
+
+#else
+
+static
+char* PYSTR_TO_CHAR(PyObject *obj) {
+  return PyString_AsString(obj);
+}
+
+static
+void CLEAR_REFS(void) { }
+
+#endif
+
 static inline char *pyobj_to_cstr(PyObject *obj) {
   char *result;
   PyObject *string = PyObject_Repr(obj);
   if (NULL == string) {
     return "STR FAILED";
   }
-  // an empty string in sqlite is interpreted as python None,
-  // returning a pythonic empty string is prettier.
-  result = PyString_AsString(string);
-  if (result[0] == NULL) {
+  // an empty string in sqlite is interpreted as null (python None),
+  // returning a pythonic empty string is prettierr.
+  result = PYSTR_TO_CHAR(string);
+  Py_DECREF(string);
+  if (result[0] == 0) {
     return "''"; 
   }
   return result;
@@ -77,27 +113,30 @@ inline static int in_no_trace_context(void) {
 }
 
 inline static int should_exit_no_trace_context(void) {
-  return (get_depth() < pthread_getspecific(no_trace_context_key) - DEPTH_MAGIC);
+  return (get_depth() < (int) (long) pthread_getspecific(no_trace_context_key) - DEPTH_MAGIC);
 }
 
 int should_trace_frame(PyFrameObject *frame) {
-  return !(0 == strncmp(PyString_AsString(frame->f_code->co_name), 
+  return !(0 == strncmp(PYSTR_TO_CHAR(frame->f_code->co_name), 
 			DONT_TRACE_NAME, 
 			strlen(DONT_TRACE_NAME)));
 }
 
 void handle_trace(PyFrameObject *frame, Record__RecordType record_type, int n_arguments) 
 {
+  static int count = 0;
+  count++;
   record->type = record_type;
   record->n_arguments = n_arguments;
   record->time = floattime();
   record->tid = (long) pthread_self();
   record->depth = get_depth();
-  set_string(&(record->module), PyString_AsString(frame->f_code->co_filename));
-  set_string(&(record->function), PyString_AsString(frame->f_code->co_name));
+  set_string(&(record->module), PYSTR_TO_CHAR(frame->f_code->co_filename));
+  set_string(&(record->function), PYSTR_TO_CHAR(frame->f_code->co_name));
   record->lineno = frame->f_code->co_firstlineno;
   record__pack(record, record_buf);
   write_record(record_buf, (unsigned long) record__get_packed_size(record));
+  CLEAR_REFS();
 }
 
 void handle_call(PyFrameObject *frame) {  
@@ -128,7 +167,7 @@ void handle_call(PyFrameObject *frame) {
       value = PyDict_GetItem(frame->f_locals, name);
     }
     if (NULL != value) { // happens when exec is used
-      set_string(&(arguments[i]->name), PyString_AsString(name));
+      set_string(&(arguments[i]->name), PYSTR_TO_CHAR(name));
       set_string(&(arguments[i]->type), value->ob_type->tp_name);
       set_string(&(arguments[i]->value), pyobj_to_cstr(value));
       count++;

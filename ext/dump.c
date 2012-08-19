@@ -52,15 +52,15 @@ void dump(void) {
   while (1) {
     switch (size = reader_read(reader, buf)) {
     case 0:
+      if (FALSE == last_was_none) {
+	db_truncate(MAX_TRACES);
+	last_was_none = TRUE;
+      }
       if (should_stop) {
 	db_commit();
 	should_stop = 0;
 	return;
-      } 
-      if (FALSE == last_was_none) {
-	db_truncate(MAX_TRACES);
       }
-      last_was_none = TRUE;
       db_commit();
       usleep(50000); // 50 ms
       count = 0;
@@ -81,6 +81,7 @@ void dump(void) {
       record__free_unpacked(rec, NULL);
       if (COMMIT_INTERVAL < count) {
 	count = 0;
+	db_truncate(MAX_TRACES);
 	db_commit();
       }
     }

@@ -35,7 +35,7 @@ class TraceWalker(object):
 
     def set_prepare_callback(self, prepare_cb):
         self.prepare_cb = prepare_cb
-        self.cache = map(self.prepare_cb, self.cache)
+        self.cache = list(map(self.prepare_cb, self.cache))
 
     def set_filter(self, filter=None):
         self._filter = filter
@@ -51,7 +51,7 @@ class TraceWalker(object):
         return self.prepare_cb(prettify(trace))
         
     def _fetch(self, start, end):
-        self.cache = map(self._prepare, self.db.find(start, end, self._filter))
+        self.cache = list(map(self._prepare, self.db.find(start, end, self._filter)))
         self.start_index = start
         self.end_index = end
         
@@ -61,12 +61,12 @@ class TraceWalker(object):
     def __getitem__(self, i):
         if not (self.start_index <= i < self.end_index):
             if i == self.end_index:
-                end = min(self.end_index + self.CACHE_SIZE / 2, self.length)
+                end = min(self.end_index + int(self.CACHE_SIZE / 2), self.length)
                 start = max(end - self.CACHE_SIZE, 0)
-                self.cache = self.cache[-(self.CACHE_SIZE / 2):] + map(self._prepare, self.db.find(start + self.CACHE_SIZE / 2, end, self._filter))
+                self.cache = self.cache[-int(self.CACHE_SIZE / 2):] + map(self._prepare, self.db.find(start + int(self.CACHE_SIZE / 2), end, self._filter))
                 self.start_index = start
                 self.end_index = end
             else:
-                self._fetch(max(0, i - (self.CACHE_SIZE / 2)),
-                            min(self.length, i + (self.CACHE_SIZE / 2)))
+                self._fetch(max(0, i - int(self.CACHE_SIZE / 2)),
+                            min(self.length, i + int(self.CACHE_SIZE / 2)))
         return self.cache[i - self.start_index]
