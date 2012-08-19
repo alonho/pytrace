@@ -5,6 +5,12 @@ pytrace records function calls, arguments and return values.
 
 traces aid debugging, profiling and obviate logging.
 
+
+pytrace has been tested on python 2.7 and python 3.2. (should support 2.6 and up)
+
+pytrace has been tested on os x and several linux distributions.
+
+
 Follow **@alonhorev** on **twitter** for updates.
 
 Install
