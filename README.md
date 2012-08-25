@@ -102,14 +102,16 @@ Architecture
 
 pytrace can be broken down to three parts:
 
-1. a trace generator - translates function calls to binary trace records saved in memory using *protocol buffers* (http://code.google.com/p/protobuf-c/).
+1. a trace generator - using python's built-in tracing mechanism (sys.settrace) function calls are translated to binary trace records saved in memory as *protocol buffers* (http://code.google.com/p/protobuf-c/).
 2. a trace dumper - runs in a separate thread/process, collects traces from memory and dumps them to a sqlite database. 
 3. a trace reader - reads traces from the database.
 
 The separation of trace generation and dumping has several advantages:
 
-1. **Python utilizes two cores!** - the dumper thread does not touch python objects, only trace records that are saved as binary strings. therefore, it doesn't acquire the global interpreter lock.
-2. The dumper can run in a separate process and aggregate traces from several processes - By using shared memory the trace data can be shared between a generator process and a dumper process.
+1. speed - the overhead on the traced code is minimal, serialization to protocol buffers is faster then inserting to a database.
+2. prioritization - the trace records are saved to a lock-less circular buffer. The generator has priority over the dumper, meaning, if the dumper doesn't keep up it will lose traces (the generator never blocks).
+3. **Python utilizes two cores!** - the dumper thread does not touch python objects, only trace records that are saved as binary strings. therefore, it doesn't acquire the global interpreter lock.
+4. Trace aggregation from several processes - By using shared memory the trace data can be shared between a dumper process and one or more generator processes.
 
 TODO
 ----
