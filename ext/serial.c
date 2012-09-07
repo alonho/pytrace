@@ -1,6 +1,5 @@
 #include <pthread.h>
 #include "serial.h"
-#include "write.h"
 #include "defs.h"
 
 #define PYPRINT(obj) PyObject_Print(obj, stdout, Py_PRINT_RAW);
@@ -9,6 +8,7 @@ static Record *record; // pre-allocate a single record to be re-used
 static Argument **arguments; // pre-allocate maximum number of arguments
 static unsigned char *record_buf;
 static pthread_key_t depth_key, no_trace_context_key;
+static Ring *global_ring;
 
 #ifdef IS_PY3K
 
@@ -26,10 +26,9 @@ void CLEAR_REFS(void) {
 
 static 
 char* PYSTR_TO_CHAR(PyObject *obj) {
-  PyObject* bytes = PyUnicode_AsUTF8String(obj);
-  refs[refs_count] = bytes;
-  refs_count++;
-  ASSERT(refs_count < MAX_ARGS * 3);
+  PyObject *bytes = PyUnicode_AsUTF8String(obj);
+  refs[refs_count++] = bytes;
+  ASSERT(refs_count < MAX_ARGS * 3); // name and value per arg, plus backup
   return PyBytes_AsString(bytes);
 }
 
@@ -61,7 +60,8 @@ static inline char *pyobj_to_cstr(PyObject *obj) {
   return result;
 }
 
-void init_serialize(void) {
+void init_serialize(Ring* ring) {
+  global_ring = ring;
   ASSERT(0 == pthread_key_create(&depth_key, NULL));
   ASSERT(0 == pthread_key_create(&no_trace_context_key, NULL));
   record_buf = malloc(MAX_RECORD_SIZE);
@@ -76,7 +76,6 @@ void init_serialize(void) {
     arguments[i] = malloc(sizeof(Argument));
     argument__init(arguments[i]);
   }
-  init_writer();
 }
 
 void set_string(ProtobufCBinaryData *bin_data, const char *str) {
@@ -135,7 +134,7 @@ void handle_trace(PyFrameObject *frame, Record__RecordType record_type, int n_ar
   set_string(&(record->function), PYSTR_TO_CHAR(frame->f_code->co_name));
   record->lineno = frame->f_code->co_firstlineno;
   record__pack(record, record_buf);
-  write_record(record_buf, (unsigned long) record__get_packed_size(record));
+  ring_write(global_ring, record_buf, (unsigned long) record__get_packed_size(record));
   CLEAR_REFS();
 }
 

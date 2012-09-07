@@ -5,11 +5,11 @@
 #include "shared_ring.h"
 
 static inline int shm_exists(key_t key) {
-  return shmget(key, RB_SIZE, 0) != -1; 
+  return shmget(key, RING_SIZE, 0) != -1; 
 }
 
 static inline int shm_init(key_t key) {
-  return shmget(key, RB_SIZE, IPC_CREAT | SHM_R | SHM_W); 
+  return shmget(key, RING_SIZE, IPC_CREAT | SHM_R | SHM_W); 
 }
 
 static inline unsigned char* attach_read(int shmid) {
@@ -40,7 +40,7 @@ Ring *shared_ring_init(int readonly) {
       perror("shmat");
       return NULL;
     }
-    ring = ring_init_from_memory(mem, RB_SIZE);
+    ring = ring_init_from_memory(mem, RING_SIZE);
     if (readonly) {
       shmdt(mem);
       mem = attach_read(shmid);
@@ -48,7 +48,7 @@ Ring *shared_ring_init(int readonly) {
 	perror("shmat");
 	return NULL;
       }
-      ring_from_memory(mem, RB_SIZE);
+      ring_from_memory(mem, RING_SIZE);
     }
   } else {
     if (readonly) {
@@ -60,7 +60,7 @@ Ring *shared_ring_init(int readonly) {
       perror("shmat");
       return NULL;
     }
-    ring = ring_from_memory(mem, RB_SIZE);
+    ring = ring_from_memory(mem, RING_SIZE);
   }
   return ring;
 }

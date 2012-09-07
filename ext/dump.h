@@ -1,10 +1,12 @@
 #ifndef DUMP_H
 #define DUMP_H
 
-void dump_main_in_thread(void);
-void dump_stop(void);
+#include "ring.h"
 
-void dump_process_init(void);
+void dump_init(Ring *ring);
 void dump(void);
+
+void dump_thread_start(void);
+void dump_thread_stop(void);
 
 #endif /* dump */

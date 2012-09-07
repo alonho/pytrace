@@ -8,6 +8,7 @@
 #define MODULE_DOC PyDoc_STR("C extension for fast function tracing.")
 
 static PyObject *filter_modules = NULL;
+static Ring *ring;
 
 int should_trace_module(PyObject *module_str) {
   int i, len, found;
@@ -74,25 +75,26 @@ set_filter_modules(PyObject *self, PyObject *args) {
 }
 
 static PyObject*
-install(PyObject *self, PyObject *args) {
+install_hook(PyObject *self, PyObject *args) {
   PyEval_SetTrace((Py_tracefunc) trace_func, (PyObject*) self);
   return Py_BuildValue("");
 }
 
 static PyObject*
 start_dumper(PyObject *self, PyObject *args) {
-  dump_main_in_thread();
+  dump_init(ring);
+  dump_thread_start();
   return Py_BuildValue("");
 }
 
 static PyObject*
 stop_dumper(PyObject *self, PyObject *args) {
-  dump_stop();
+  dump_thread_stop();
   return Py_BuildValue("");
 }
 
 static PyObject*
-uninstall(PyObject *self, PyObject *args)
+uninstall_hook(PyObject *self, PyObject *args)
 {
   PyEval_SetTrace(NULL, NULL);
   return Py_BuildValue("");
@@ -101,7 +103,8 @@ uninstall(PyObject *self, PyObject *args)
 static PyObject*
 init(PyObject *self, PyObject *args)
 {
-  init_serialize();
+  ring = ring_malloc(RING_SIZE);
+  init_serialize(ring);
   return Py_BuildValue("");
 }
 
@@ -110,8 +113,8 @@ methods[] = {
   {"init", (PyCFunction) init, METH_VARARGS, PyDoc_STR("Init the extension by binding the shared memory")},
   {"start_dumper", (PyCFunction) start_dumper, METH_VARARGS, PyDoc_STR("Start the dumper")},
   {"stop_dumper", (PyCFunction) stop_dumper, METH_VARARGS, PyDoc_STR("Stop the dumper")},
-  {"install", (PyCFunction) install, METH_VARARGS, PyDoc_STR("Install the trace function")},
-  {"uninstall", (PyCFunction) uninstall, METH_VARARGS, PyDoc_STR("Uninstall the trace function")},
+  {"install_hook", (PyCFunction) install_hook, METH_VARARGS, PyDoc_STR("Install the trace function")},
+  {"uninstall_hook", (PyCFunction) uninstall_hook, METH_VARARGS, PyDoc_STR("Uninstall the trace function")},
   {"set_filter_modules", (PyCFunction) set_filter_modules, METH_VARARGS, PyDoc_STR("Set the package names to trace")},
   {NULL}
 };

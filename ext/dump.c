@@ -9,24 +9,13 @@
 #include "record_pb.h"
 #include "dump.h"
 
-Ring *ring;
 RingReader *reader;
 unsigned char *buf;
 
-void dump_init(void) {
+void dump_init(Ring *ring) {
+  db_init();
   reader = reader_malloc(ring);
   buf = malloc(MAX_RECORD_SIZE);
-  db_init();
-}
-
-void dump_process_init(void) {
-  ring = shared_ring_init(1);
-  dump_init();
-}
-
-void dump_thread_init(void) {
-  ring = ring_from_memory((void*) RING_ADDRESS, RB_SIZE);
-  dump_init();
 }
 
 void print_record(Record *rec) {
@@ -88,18 +77,13 @@ void dump(void) {
   }
 }
 
-void dump_thread_main(void) {
-  dump_thread_init();
-  dump();
-}
-
 pthread_t dump_thread;
-void dump_main_in_thread(void) {
+void dump_thread_start(void) {
+  pthread_create(&dump_thread, NULL,  (void*) dump, NULL);
   should_stop = 0;
-  pthread_create(&dump_thread, NULL,  (void*) dump_thread_main, NULL);
 }
 
-void dump_stop(void) {
+void dump_thread_stop(void) {
   should_stop = 1;
   while (1 == should_stop) {
     usleep(10);

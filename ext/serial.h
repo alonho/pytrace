@@ -1,11 +1,13 @@
 #ifndef SERIAL_H
 #define SERIAL_H
 
-#include "record_pb.h"
 #include "Python.h"
 #include "frameobject.h"
 
-void init_serialize(void);
+#include "record_pb.h"
+#include "ring.h"
+
+void init_serialize(Ring *ring);
 void handle_trace(PyFrameObject *frame, Record__RecordType record_type, int n_arguments);
 void handle_call(PyFrameObject *frame);
 void handle_return(PyFrameObject *frame, PyObject *value);

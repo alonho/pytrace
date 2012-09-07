@@ -46,7 +46,7 @@ Ring *ring_init_from_memory(unsigned char *buf, unsigned int size) {
 
 Ring *ring_malloc(unsigned int size) {
   Ring *ring = malloc(sizeof(Ring));
-  unsigned char *buf = malloc(sizeof(Ring));
+  unsigned char *buf = malloc(size);
   ring_init(ring, buf, size);
   return ring;
 }

@@ -14,13 +14,13 @@ def start(filter_modules=DEFAULT_MODULES):
         tracer.set_filter_modules(filter_modules)
     threading.settrace(thread_trace)
     tracer.start_dumper()
-    tracer.install() 
+    tracer.install_hook() 
 
 def thread_trace(*_):
-    tracer.install()
+    tracer.install_hook()
     
 def stop():
-    tracer.uninstall()
+    tracer.uninstall_hook()
     tracer.stop_dumper()
     threading.settrace(None)
 
