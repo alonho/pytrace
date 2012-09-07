@@ -1,3 +1,4 @@
+import six
 import urwid
 from .trace_walker import TraceWalker
 from .search import SearchBox, FilterBox
@@ -66,15 +67,22 @@ class LessLikeListBox(urwid.ListBox):
             res.extend([('action', action.replace('_', ' ')), ' : ', ('key', key), ' '])
         return urwid.Text(res, wrap='clip')
 
+import os, sys
+        
 def main():
     content = TraceWalker()
-    listbox = LessLikeListBox(content)
-    top = urwid.Frame(listbox, listbox.get_keys_and_actions_text())
-    listbox.set_frame(top)
-    screen = urwid.raw_display.Screen()
-    screen.set_terminal_properties(colors=256)
-    loop = urwid.MainLoop(top, palette, screen=screen)
-    loop.run()
+
+    if os.isatty(sys.stdout.fileno()):
+        listbox = LessLikeListBox(content)
+        top = urwid.Frame(listbox, listbox.get_keys_and_actions_text())
+        listbox.set_frame(top)
+        screen = urwid.raw_display.Screen()
+        screen.set_terminal_properties(colors=256)
+        loop = urwid.MainLoop(top, palette, screen=screen)
+        loop.run()
+    else:
+        for line in content.iter_raw_text():
+            six.print_(line)
 
 def debug_main():
     try:
