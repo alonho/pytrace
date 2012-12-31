@@ -42,7 +42,6 @@ class LessLikeListBox(urwid.ListBox):
                'b': 'page up'}
 
     FUNC_MAP = {'G': end,
-                'p': start,
                 'g': start,
                 'q': quit}
     
