@@ -42,7 +42,6 @@ class LessLikeListBox(urwid.ListBox):
                'b': 'page up'}
 
     FUNC_MAP = {'G': end,
-                'p': start,
                 'g': start,
                 'q': quit}
     
@@ -64,7 +63,7 @@ class LessLikeListBox(urwid.ListBox):
     def get_keys_and_actions_text(self):
         res = []
         for key, action in self.get_keys_and_actions():
-            res.extend([('action', action.replace('_', ' ')), ' : ', ('key', key), ' '])
+            res.extend([('key', key), ':', ('action', action.replace('_', ' ')), ' '])
         return urwid.Text(res, wrap='clip')
 
 import os, sys
