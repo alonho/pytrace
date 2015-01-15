@@ -31,6 +31,7 @@ setup(name='pytrace',
                                       "ext/db.c",
                                       "ext/record_pb.c",
                                       "ext/shared_ring.c"],
+                             library_dirs = ['/opt/local/lib'],
                              include_dirs=["ext",
                                            "/opt/local/include"], # where macports installs protobuf
                              libraries=["protobuf-c", "sqlite3"],
