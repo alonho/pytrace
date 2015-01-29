@@ -10,6 +10,7 @@ def simple(arg):
 
 @notrace
 def test_no_trace(n):
+    default()
     return n * 2
     
 def default(arg=10):

@@ -85,7 +85,7 @@ void set_string(ProtobufCBinaryData *bin_data, const char *str) {
 
 inline static int get_depth(void) {
   // if called before inc/dec will return NULL -> 0
-  return (int) (long) pthread_getspecific(depth_key); 
+  return (int) pthread_getspecific(depth_key);
 }
 
 inline static void increment_depth(void) {
@@ -99,8 +99,7 @@ inline static void decrement_depth(void) {
 #define DEPTH_MAGIC 10000
 
 inline static void enter_no_trace_context(void) {
-  pthread_setspecific(no_trace_context_key, 
-		      (void*) (int) (long) get_depth() + DEPTH_MAGIC);
+  pthread_setspecific(no_trace_context_key, (void*) (long) (get_depth() + DEPTH_MAGIC));
 }
 
 inline static void exit_no_trace_context(void) {
@@ -112,7 +111,7 @@ inline static int in_no_trace_context(void) {
 }
 
 inline static int should_exit_no_trace_context(void) {
-  return (get_depth() < (int) (long) pthread_getspecific(no_trace_context_key) - DEPTH_MAGIC);
+  return get_depth() < ((long) pthread_getspecific(no_trace_context_key)) - DEPTH_MAGIC;
 }
 
 int should_trace_frame(PyFrameObject *frame) {
