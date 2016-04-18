@@ -1,5 +1,5 @@
+#include "Python.h" // this header should be first!
 #include <stdlib.h>
-#include "Python.h"
 #include "frameobject.h"
 #include "serial.h"
 #include "dump.h"

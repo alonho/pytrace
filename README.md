@@ -20,7 +20,7 @@ pytrace depends on sqlite and a C implementation of protocol buffers.
 
 on debian/ubuntu: `sudo apt-get install libsqlite3-dev libprotobuf-c0-dev`
 
-on fedora: `sudo yum install libsqlite3x-devel protobuf-c-devel`
+on fedora: `sudo yum install libsqlite3x-devel sqlite-devel python-devel protobuf-c-devel`
 
 on mac (sqlite is included): `brew install protobuf-c` or `port install protobuf-c`
 

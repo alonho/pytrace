@@ -1,3 +1,5 @@
+#include "Python.h"
+
 #include <pthread.h>
 #include "serial.h"
 #include "defs.h"
@@ -24,7 +26,7 @@ void CLEAR_REFS(void) {
   refs_count = 0;
 }
 
-static 
+static
 char* PYSTR_TO_CHAR(PyObject *obj) {
   PyObject *bytes = PyUnicode_AsUTF8String(obj);
   refs[refs_count++] = bytes;
@@ -55,7 +57,7 @@ static inline char *pyobj_to_cstr(PyObject *obj) {
   result = PYSTR_TO_CHAR(string);
   Py_DECREF(string);
   if (result[0] == 0) {
-    return "''"; 
+    return "''";
   }
   return result;
 }
@@ -90,7 +92,7 @@ inline static int get_depth(void) {
 
 inline static void increment_depth(void) {
   pthread_setspecific(depth_key, (void*) (long) (get_depth() + 1));
-}  
+}
 
 inline static void decrement_depth(void) {
   pthread_setspecific(depth_key, (void*) (long) (get_depth() - 1));
@@ -115,12 +117,12 @@ inline static int should_exit_no_trace_context(void) {
 }
 
 int should_trace_frame(PyFrameObject *frame) {
-  return !(0 == strncmp(PYSTR_TO_CHAR(frame->f_code->co_name), 
-			DONT_TRACE_NAME, 
+  return !(0 == strncmp(PYSTR_TO_CHAR(frame->f_code->co_name),
+			DONT_TRACE_NAME,
 			strlen(DONT_TRACE_NAME)));
 }
 
-void handle_trace(PyFrameObject *frame, Record__RecordType record_type, int n_arguments) 
+void handle_trace(PyFrameObject *frame, Record__RecordType record_type, int n_arguments)
 {
   static int count = 0;
   count++;
@@ -137,7 +139,7 @@ void handle_trace(PyFrameObject *frame, Record__RecordType record_type, int n_ar
   CLEAR_REFS();
 }
 
-void handle_call(PyFrameObject *frame) {  
+void handle_call(PyFrameObject *frame) {
   PyObject *name, *value;
   int i, argcount, count = 0;
   increment_depth();
@@ -169,7 +171,7 @@ void handle_call(PyFrameObject *frame) {
       set_string(&(arguments[i]->type), value->ob_type->tp_name);
       set_string(&(arguments[i]->value), pyobj_to_cstr(value));
       count++;
-    } 
+    }
   }
   handle_trace(frame, RECORD__RECORD_TYPE__CALL, count);
 }
@@ -179,7 +181,7 @@ void handle_return(PyFrameObject *frame, PyObject *value) {
   if (in_no_trace_context()) {
     if (should_exit_no_trace_context()) {
       exit_no_trace_context();
-    } 
+    }
     return;
   }
 
@@ -191,11 +193,10 @@ void handle_return(PyFrameObject *frame, PyObject *value) {
   set_string(&(arguments[0]->value), pyobj_to_cstr(value));
   handle_trace(frame, RECORD__RECORD_TYPE__RETURN, 1);
 }
-    
+
 void handle_exception(PyFrameObject *frame, PyObject *exc_info) {
   set_string(&(arguments[0]->name), "exception");
   set_string(&(arguments[0]->type), ((PyTypeObject*) PyTuple_GET_ITEM(exc_info, 0))->tp_name);
   set_string(&(arguments[0]->value), pyobj_to_cstr(PyTuple_GET_ITEM(exc_info, 1)));
   handle_trace(frame, RECORD__RECORD_TYPE__EXCEPTION, 1);
 }
-
